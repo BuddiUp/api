@@ -1,0 +1,12 @@
+{% extends 'home_Screen/home.html'%}
+
+{%block content%}
+<form method="post">
+    <!--This is the singup Form-->
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign up</button>
+</form>
+
+
+{%endblock%}
