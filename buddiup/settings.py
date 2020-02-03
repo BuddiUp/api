@@ -39,12 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-<<<<<<< HEAD:buddiup/settings.py
-
-    'rest_framework'
-=======
+    'rest_framework',
     'buddiconnect'
->>>>>>> 2a8f4941c6aa5610f84e026f675f8dd3b60e7b7f:src/buddiup/settings.py
 ]
 
 MIDDLEWARE = [
