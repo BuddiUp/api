@@ -3,9 +3,15 @@
             <title>Title Here</title>
     <head>
 
-
         <body>
             <h1> Testing homePage url</h1>
+            <h2> Sign Up Debugging</h2>
 
+            <form method="post">
+                <!--This is the singup Form-->
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Sign up</button>
+            </form>
         </body>
 </html>

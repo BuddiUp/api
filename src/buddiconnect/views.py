@@ -11,3 +11,8 @@ class Homepage(View):
         #  updateApp()  # Only use this function if you want to refresh the App with new Articles
         template = loader.get_template('home_Screen/home.html')  #  Templates folder needs to be within App is True
         return HttpResponse(template.render({}, request))
+
+    def post(self, request):
+        """ Sign Up must be  """
+        if request == 'POST':
+            pass
