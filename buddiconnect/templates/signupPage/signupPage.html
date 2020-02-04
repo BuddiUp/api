@@ -1,12 +1,19 @@
-{% extends 'home_Screen/home.html'%}
 
-{%block content%}
+
+
+
 <form method="post">
-    <!--This is the singup Form-->
     {% csrf_token %}
-    {{ form.as_p }}
+    {% for field in form %}
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <small style="color: grey">{{ field.help_text }}</small>
+        {% endif %}
+
+        {% for error in field.errors %}
+          <p style="color: red">{{ error }}</p>
+        {% endfor %}
+    {% endfor %}
     <button type="submit">Sign up</button>
-</form>
-
-
-{%endblock%}
+  </form>
