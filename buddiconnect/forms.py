@@ -15,3 +15,13 @@ class SignUpForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'birth_date', 'password1', 'password2')
+
+
+class AuthenticationForm(forms.Form):
+    username = forms.CharField(max_length=254)
+    password = forms.CharField(label=_("Password"), widget=forms.PasswordInput)
+    error_messages = {
+        'invalid_login': _("Please enter a correct %(username)s and password. "
+                           "Note that both fields may be case-sensitive."),
+        'inactive': _("This account is inactive."),
+    }

@@ -1,0 +1,16 @@
+<html>
+    <head>
+            <title>LoginIn Page</title>
+    </head>
+            <!--  Test HTML for user Login-->
+    <body>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                {{ field.label_tag }}<br>
+                {{ field }}
+            {% endfor %}
+            <button type="submit">Login</button>
+          </form>
+    </body>
+</html>

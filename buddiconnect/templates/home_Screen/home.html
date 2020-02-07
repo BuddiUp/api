@@ -13,6 +13,10 @@
                 </form>
             {%else%}
             <p> Not logged in yet</p>
+            <form method="get" action = "{% url 'login_page'%}">
+                <!--  This form will request a file to sign-->
+                <button type="submit">LOGIN</button>
+            </form>
             {%endif%}
             <form method="get", action="{% url 'signup'%}">
                 <button type="submit" name = "signupbtn"> SignUp</button>
