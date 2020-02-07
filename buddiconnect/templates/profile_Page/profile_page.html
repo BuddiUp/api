@@ -1,0 +1,17 @@
+<html>
+    <head>
+            <title> Welcome to the profile Page</title>
+    </head>
+
+
+    <body>
+            <h1> Profile for {{profile.username}}</h1>
+            {% for field in profile%}
+                <p>{{field}}</p>
+            {%endfor%}
+
+
+
+    </body>
+
+</html>

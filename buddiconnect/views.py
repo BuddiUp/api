@@ -5,7 +5,7 @@ from django.template import loader
 from .forms import SignUpForm
 from django.http import HttpResponse
 # from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 # Create your views here.
 
 
@@ -15,6 +15,21 @@ class Homepage(View):
         #  updateApp()  # Only use this function if you want to refresh the App with new Articles
         template = loader.get_template('home_Screen/home.html')  #  Templates folder needs to be within App is True
         return HttpResponse(template.render({}, request))
+
+
+class Profilepage(View):
+    """ This will display the profile model in Database"""
+    def get(self, request):
+        pass
+
+    def post(self, request):
+        pass
+
+
+def signout(request):
+    print("User", request.user)
+    logout(request)
+    return redirect('homePage')
 
 
 def signup(request):
