@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.template import loader
-from .forms import SignUpForm, LogInForm
+from .forms import SignUpForm
 from django.http import HttpResponse
 # from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
@@ -30,14 +30,6 @@ def signout(request):
     print("User", request.user)
     logout(request)
     return redirect('homePage')
-
-
-def logIn(request):
-    """ Will be used to Log In"""
-    if request.method == 'GET':
-        form = LogInForm()
-        return render(request, 'loginPage/login_page.html', {'form': form})
-    pass
 
 
 def signup(request):

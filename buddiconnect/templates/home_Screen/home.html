@@ -13,7 +13,7 @@
                 </form>
             {%else%}
             <p> Not logged in yet</p>
-            <form method="get" action = "{% url 'login_page'%}">
+            <form method="get" action = "accounts/login/">
                 <!--  This form will request a file to sign-->
                 <button type="submit">LOGIN</button>
             </form>
