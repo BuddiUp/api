@@ -2,12 +2,16 @@
     <head>
             <title> Welcome to the profile Page</title>
     </head>
-
+            <!-- Profile MODULE -->
     <body>
-            <h1> Profile for {{profile.username}}</h1>
-            {% for field in profile%}
-                <p>{{field}}</p>
-            {%endfor%}
+            <h1> Profile for {{profile.user.username}}</h1>
+            <p>Username: {{profile.user.username}}</p>
+            <p>Bio: <textarea>{{profile.bio}}</textarea></p>
+            <p>Location: {{profile.location}}</p>
+            <p> BirthDay: {{profile.birth_date}}</p>
+            <p> Seeker?: {{profile.seeker}}</p>
+            <p> This is the directory:{{profile.profile_Image.url}}</p>
+            <img src="photos/16/Earth-image.jpg" width="300px" height="200px"></img>
     </body>
 
 </html>

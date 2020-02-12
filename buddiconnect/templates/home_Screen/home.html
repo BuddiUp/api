@@ -11,6 +11,11 @@
                 <form method = 'get' action="{% url 'signout'%}">
                     <button type="submit">LOGOUT</button>
                 </form>
+                <form method="get" action="{% url 'profilePage'%}">
+
+                    <button type="submit">PROFILE</button>
+                </form>
+
             {%else%}
             <p> Not logged in yet</p>
             <form method="get" action = "accounts/login/">
@@ -20,6 +25,10 @@
             {%endif%}
             <form method="get", action="{% url 'signup'%}">
                 <button type="submit" name = "signupbtn"> SignUp</button>
+            </form>
+            <form method="get" action="{% url 'zipCodeSearch'%}">
+                <!--  Search for nearby profiles -->
+                <button type="submit">Search</button>
             </form>
             {%block content%}
             {%endblock%}
