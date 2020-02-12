@@ -8,7 +8,7 @@ from django.contrib.staticfiles.urls import static
 from . import views
 urlpatterns = [
     path('', views.Homepage.as_view(), name='homePage'),
-    path('signup', views.signup, name='signup'),
+    path('accounts/register', views.signup, name='signup'),
     path('signout', views.signout, name='signout'),
     path('profile', views.Profilepage.as_view(), name='profilePage'),
     path('search', views.zipCodeSearch.as_view(), name='zipCodeSearch')

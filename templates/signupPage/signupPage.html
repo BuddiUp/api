@@ -1,7 +1,6 @@
+{% extends 'home_Screen/home.html'%}
 
-
-
-
+{% block content %}
 <form enctype="multipart/form-data"  method="post">
     {% csrf_token %}
     {% for field in form %}
@@ -17,3 +16,4 @@
     {% endfor %}
     <button type="submit">Sign up</button>
   </form>
+{% endblock %}

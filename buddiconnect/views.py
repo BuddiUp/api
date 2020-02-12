@@ -6,6 +6,7 @@ from .forms import SignUpForm
 from .models import Profile, User
 from django.http import HttpResponse
 from django.core.files.uploadedfile import SimpleUploadedFile
+import os
 import requests
 # from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
@@ -26,11 +27,12 @@ class Profilepage(View):
     def get(self, request):
         """ View profile page on a get way  """
         profile_Object = Profile.objects.get(user=request.user)
+        os.mkdir(os.path.join('api/photos', 'blah'))
         if profile_Object.profile_Image:
             print("Exists")
         else:
             print("Nothing here")
-
+        print("Current Image:", profile_Object.profile_Image.url)
         template = loader.get_template('profile_Page/profile_page.html')  #  Templates folder needs to be within App is True
         return HttpResponse(template.render({"profile": profile_Object, "image": profile_Object.profile_Image.url}, request))
 
