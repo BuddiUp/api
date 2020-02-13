@@ -3,15 +3,11 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.template import loader
 from .forms import SignUpForm
-from .models import Profile, User
+from .models import Profile
 from django.http import HttpResponse
-from django.core.files.uploadedfile import SimpleUploadedFile
-import os
-import requests
 # from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
 # Create your views here.
-SECRET_KEY_ZIP = '241EHLGNGW3A9GRI17OO'
 
 
 class Homepage(View):
@@ -27,7 +23,6 @@ class Profilepage(View):
     def get(self, request):
         """ View profile page on a get way  """
         profile_Object = Profile.objects.get(user=request.user)
-        os.mkdir(os.path.join('api/photos', 'blah'))
         if profile_Object.profile_Image:
             print("Exists")
         else:
@@ -52,12 +47,7 @@ class zipCodeSearch(View):
         pass
 
     def post(self, request):
-        # params = {
-        #                 'zipOne': ?,
-        #                 'zipTwo': ?,
-        #                 'APIKEY': SECRET_KEY_ZIP
-        #                 }
-        test_request = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/CalculateDistance/ByZip?fromzipcode=zipOne&tozipcode=zipTwo&key=<APIKEY>', params)
+        pass
 
 
 def signup(request):
@@ -73,8 +63,11 @@ def signup(request):
             user.refresh_from_db()  # load the profile instance created by the signal
             user.profile.birth_date = form.cleaned_data.get('birth_date')
             user.profile.seeker = form.cleaned_data.get('seeker')
-            user.profile.location = form.cleaned_data.get('location')
-            user.profile.profile_Image = form.cleaned_data.get('profile_Image')
+            user.profile.city = form.cleaned_data.get('city')
+            user.profile.state = form.cleaned_data.get('state')
+            user.profile.zipCode = form.cleaned_data.get('zipCode')
+
+            user.profile.profile_Image = form.clean_image()
             print("This is what we are saving:", form.cleaned_data.get('profile_Image'))
             user.save()
             raw_password = form.cleaned_data.get('password1')
