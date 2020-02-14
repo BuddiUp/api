@@ -4,7 +4,9 @@ from django.views import View
 from django.template import loader
 from .forms import SignUpForm
 from .models import Profile
+from .serializers import ProfileSerializer
 from django.http import HttpResponse
+from rest_framework import generics
 # from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
 # Create your views here.
@@ -48,6 +50,12 @@ class zipCodeSearch(View):
 
     def post(self, request):
         pass
+
+
+class ProfileAPICalls(generics.ListCreateAPIView):
+    """Adding API call here """
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
 
 def signup(request):

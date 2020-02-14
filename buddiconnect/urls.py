@@ -11,7 +11,8 @@ urlpatterns = [
     path('accounts/register', views.signup, name='signup'),
     path('signout', views.signout, name='signout'),
     path('profile', views.Profilepage.as_view(), name='profilePage'),
-    path('search', views.zipCodeSearch.as_view(), name='zipCodeSearch')
+    path('search', views.zipCodeSearch.as_view(), name='zipCodeSearch'),
+    path('api/profiles', views.ProfileAPICalls.as_view())
 ]
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
