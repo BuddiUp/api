@@ -21,7 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv()
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'h!3e67)1%%vjw^6dx2*ocoiz!dxn_e)maabz!o-gg(@of+=rid')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY',
+                       'h!3e67)1%%vjw^6dx2*ocoiz!dxn_e)maabz!o-gg(@of+=rid')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -39,8 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'buddiconnect'
+    'knox',
+    'buddiconnect',
+    'buddiaccounts',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -58,7 +62,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [os.path.join(BASE_DIR, 'templates').replace('\\', '/'),
-                 os.path.join(BASE_DIR, 'templates/registration').replace('\\', '/'),],
+                 os.path.join(BASE_DIR, 'templates/registration').replace('\\', '/'), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,9 +126,10 @@ LOGOUT_REDIRECT_URL = "/"
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-MEDIA_ROOT = 'api/photos'  #  Make sure root is set before the saving on board
+MEDIA_ROOT = 'api/photos'  # Make sure root is set before the saving on board
 MEDIA_URL = '/photos/'
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
