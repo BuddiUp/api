@@ -33,7 +33,7 @@ LoginAPI:
     - Hit send
 UserAPI:
     - Open a new tab
-    - Set to POST request with the URL: http://127.0.0.1:8000/api/auth/user
+    - Set to GET request with the URL: http://127.0.0.1:8000/api/auth/user
     - Inside HEADERS:
         - KEY: Authorization
         - VALUE: Token (get token from LoginAPI)
