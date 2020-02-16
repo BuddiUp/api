@@ -9,6 +9,15 @@ from django.http import HttpResponse
 from rest_framework import generics
 # from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.template.loader import render_to_string
+from .tokens import account_activation_token
+from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
+
 # Create your views here.
 
 
@@ -70,18 +79,33 @@ def signup(request):
             user = form.save()
             print("This is the form", user)
             user.refresh_from_db()  # load the profile instance created by the signal
-            user.profile.birth_date = form.cleaned_data.get('birth_date')
-            user.profile.seeker = form.cleaned_data.get('seeker')
-            user.profile.city = form.cleaned_data.get('city')
-            user.profile.state = form.cleaned_data.get('state')
-            user.profile.zipCode = form.cleaned_data.get('zipCode')
-            user.profile.profile_Image = form.cleaned_data.get('profile_Image')
-            print("This is what we are saving:", form.cleaned_data.get('profile_Image'))
+            # user.profile.birth_date = form.cleaned_data.get('birth_date')
+            # user.profile.seeker = form.cleaned_data.get('seeker')
+            # user.profile.city = form.cleaned_data.get('city')
+            # user.profile.state = form.cleaned_data.get('state')
+            # user.profile.zipCode = form.cleaned_data.get('zipCode')
+            # user.profile.profile_Image = form.cleaned_data.get('profile_Image')
+            # print("This is what we are saving:", form.cleaned_data.get('profile_Image'))
             user.save()
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=user.username, password=raw_password)
-            login(request, user)
-            return redirect('homePage')
+
+            # raw_password = form.cleaned_data.get('password1')
+            # user = authenticate(username=user.username, password=raw_password)
+            # login(request, user)
+            # return redirect('homePage')
+            
+            # Send confirmation email
+            current_site = get_current_site(request)
+            email_subject = 'Activate Your Account'
+            message = render_to_string('signupPage/activate_account.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'token': account_activation_token.make_token(user),
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(email_subject, message, to=[to_email])
+            email.send()
+            return HttpResponse('We have sent you an email, please confirm your email address to complete registration')
         else:
             print("Starting brand New")
             form = SignUpForm(request.POST)
@@ -89,3 +113,17 @@ def signup(request):
         print("Landed on Signup Page")
         form = SignUpForm()
     return render(request, 'signupPage/signupPage.html', {'form': form})
+
+def activate_account(request, uidb64, token):
+    try:
+        uid = force_bytes(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()
+        login(request, user)
+        return HttpResponse('Your account has been activated successfully')
+    else:
+        return HttpResponse('Activation link is invalid!')
