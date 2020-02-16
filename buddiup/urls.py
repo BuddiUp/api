@@ -29,5 +29,6 @@ urlpatterns = [
     path('', include('buddiaccounts.urls')),
     path('api/', include(router.urls)),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('react-auth/', include('buddiaccounts.urls'))
 ]
