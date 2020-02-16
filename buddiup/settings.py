@@ -141,5 +141,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
-# email backend for debug prints to console
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# email backend for debug (prints to console)
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# email backend using google
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')
+EMAIL_HOST_PASSWORD = os.getenv('GMAIL_KEY')
