@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from buddiconnect.models import Profile
+from buddiconnect.forms import validate_image
 from django.contrib.auth import authenticate
 
 
@@ -8,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
         model = User
-        fields = ('username')
+        fields = "__all__"
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -22,7 +23,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     '''Register Serializer'''
     class Meta:
         model = Profile
-        fields = ('email', 'password', 'username', 'bio', 'city', 'state', 'zipCode', 'birth_date', 'seeker')
+        fields = ('profile_Image', 'bio', 'city', 'state', 'zipCode', 'email', 'birth_date', 'seeker', 'password', 'username')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -34,6 +35,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         username = validated_data['username']
         user_profile = User.objects.get(username=username)
         user_profile.refresh_from_db()
+        user_profile.profile.profile_Image = validate_image(validated_data['profile_Image'])
         user_profile.profile.email = validated_data['email']
         user_profile.profile.bio = validated_data['bio']
         user_profile.profile.city = validated_data['city']
