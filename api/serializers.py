@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User, Group
+from buddiaccounts.models import CustomUser
 from buddiconnect.models import Profile
 from rest_framework import serializers
 
@@ -8,8 +8,8 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = Profile
         fields = ['user', 'profile_Image', 'bio', 'city', 'state', 'zipCode', 'birth_date', 'seeker']
 
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ['url', 'name']
+#
+# class GroupSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = Group
+#         fields = ['url', 'name']

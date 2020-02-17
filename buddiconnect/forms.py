@@ -10,6 +10,7 @@ def validate_image(image):
     limit_kb = 1500 * 30
     if file_size > limit_kb:
         raise ValidationError("Max size of file is %s KB" % limit_kb)
+    return image
 
 
 class SignUpForm(UserCreationForm, forms.Form):
