@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from buddiaccounts.models import CustomUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import os
@@ -17,7 +17,7 @@ def get_image_path(instance, filename):
 class Profile(models.Model):
     """ This model Profile will be used to create A profile of the User"""
     profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     bio = models.TextField(max_length=500, blank=True)
     city = models.CharField(max_length=20, blank=True)
     state = models.CharField(max_length=2, blank=True)
@@ -26,8 +26,7 @@ class Profile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
     seeker = models.BooleanField(null=True)
     password = models.CharField(max_length=100, blank=True)
-    username = models.CharField(max_length=20, blank=True)
-    
+
     def __str__(self):
         return self.user.username
 
@@ -35,7 +34,7 @@ class Profile(models.Model):
         return mark_safe('<img src="/photos/%s" width="150" height="150" />' % (self.profile_Image))
 
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=CustomUser)
 def update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)

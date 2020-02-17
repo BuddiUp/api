@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'buddiconnect',
     'buddiaccounts',
 ]
-
+AUTH_USER_MODEL = 'buddiaccounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -124,6 +124,12 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'buddiaccounts.models.EmailBackend',
+    # "allauth.account.auth_backends.AuthenticationBackend",
+)
+
 
 STATIC_URL = '/static/'
 MEDIA_ROOT = 'api/photos'  # Make sure root is set before the saving on board
@@ -140,3 +146,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+#  Helped with creating table for custom user
+# https://stackoverflow.com/questions/25771755/django-operationalerror-no-such-table/37799885

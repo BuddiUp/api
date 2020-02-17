@@ -1,14 +1,13 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from buddiconnect.models import Profile
 from buddiconnect.forms import validate_image
-from django.contrib.auth import authenticate
+from .models import EmailBackend, CustomUser
 
 
 class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
-        model = User
+        model = CustomUser
         fields = "__all__"
 
 
@@ -23,17 +22,16 @@ class RegisterSerializer(serializers.ModelSerializer):
     '''Register Serializer'''
     class Meta:
         model = Profile
-        fields = ('profile_Image', 'bio', 'city', 'state', 'zipCode', 'email', 'birth_date', 'seeker', 'password', 'username')
+        fields = ('profile_Image', 'bio', 'city', 'state', 'zipCode', 'email', 'birth_date', 'seeker', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         # load the profile instance created by the signal
         # validated_data handles hashing of the password
-        User.objects.create_user(
-              validated_data['username'], validated_data['email'], validated_data['password'])
+        CustomUser.objects.create_user(
+             validated_data['email'], validated_data['password'])
         # form = SignUpForm(self, instance=user)
-        username = validated_data['username']
-        user_profile = User.objects.get(username=username)
+        user_profile = CustomUser.objects.get(email=validated_data['email'])
         user_profile.refresh_from_db()
         user_profile.profile.profile_Image = validate_image(validated_data['profile_Image'])
         user_profile.profile.email = validated_data['email']
@@ -44,17 +42,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         user_profile.profile.birth_date = validated_data['birth_date']
         user_profile.profile.seeker = validated_data['seeker']
         user_profile.profile.save()
-        user = User.objects.get(id=user_profile.profile.id)
+        user = CustomUser.objects.get(id=user_profile.profile.id)
         return user
 
 
 class LoginSerializer(serializers.Serializer):
     '''Login Serializer'''
-    username = serializers.CharField()
+    email = serializers.CharField()
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(**data)
+        user = EmailBackend.authenticate(self, **data)
 
         if user and user.is_active:
             """  If authentication passed, user will be active, else Auth must have failed"""
