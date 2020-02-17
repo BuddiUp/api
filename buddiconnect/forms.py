@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+import cv2
 
 
 def validate_image(image):
@@ -11,6 +12,15 @@ def validate_image(image):
     if file_size > limit_kb:
         raise ValidationError("Max size of file is %s KB" % limit_kb)
     return image
+
+
+def compareImages(ImageOne, ImageTwo):
+    difference = cv2.subtract(ImageOne, ImageTwo)
+    b, g, r = cv2.split(difference)
+    if not cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
+        return False
+    else:
+        return True
 
 
 class SignUpForm(UserCreationForm, forms.Form):

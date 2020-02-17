@@ -28,7 +28,7 @@ class Profile(models.Model):
     password = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.email
 
     def image_tag(self):
         return mark_safe('<img src="/photos/%s" width="150" height="150" />' % (self.profile_Image))
