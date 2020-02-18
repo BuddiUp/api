@@ -2,6 +2,7 @@ from rest_framework import serializers
 from buddiconnect.models import Profile
 from buddiconnect.forms import validate_image
 from .models import EmailBackend, CustomUser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,38 +12,65 @@ class UserSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    '''User Serializer'''
+class ProfileDisplaySerializer(serializers.ModelSerializer):
+    """ Profile Serializer """
+
     class Meta:
         model = Profile
         fields = "__all__"
 
 
+class UserSearchSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = "__all__"
+
+
+class ProfileSerializer(serializers.Serializer):
+    '''User Serializer'''
+    birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
+    city = serializers.CharField(required=False, max_length=20)
+    state = serializers.CharField(required=False, max_length=2)
+    zipCode = serializers.CharField(required=False, max_length=5)
+    seeker = serializers.BooleanField(required=False)  # By default its false
+    profile_Image = serializers.ImageField(required=False, validators=[validate_image])
+
+    parser_classes = [FormParser, MultiPartParser]
+
+    def save(self, request, filename):
+
+        if self['birth_date'].value is not None:
+            self.context['request'].user.profile.birth_date = self.validated_data['birth_date']
+        if self['city'].value is not None:
+            self.context['request'].user.profile.city = self.validated_data['city']
+        if self['state'].value is not None:
+            self.context['request'].user.profile.state = self.validated_data['state']
+        if self['zipCode'].value is not None:
+            self.context['request'].user.profile.zipCode = self.validated_data['zipCode']
+        if self['profile_Image'].value is not None:
+            self.context['request'].user.profile.profile_Image = validate_image(self.validated_data['profile_Image'])
+        if request.data.get('profile_Image', False):
+            self.context['request'].user.profile.profile_Image = request.data['profile_Image']
+        if self['seeker'].value is False and self.validated_data['seeker'] is True:
+            self.context['request'].user.profile.seeker = self.validated_data['seeker']
+        self.context['request'].user.profile.save()
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     '''Register Serializer'''
     class Meta:
-        model = Profile
-        fields = ('profile_Image', 'bio', 'city', 'state', 'zipCode', 'email', 'birth_date', 'seeker', 'password')
+        model = CustomUser
+        fields = ('email', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         # load the profile instance created by the signal
         # validated_data handles hashing of the password
-        CustomUser.objects.create_user(
+        user = CustomUser.objects.create_user(
              validated_data['email'], validated_data['password'])
-        # form = SignUpForm(self, instance=user)
-        user_profile = CustomUser.objects.get(email=validated_data['email'])
-        user_profile.refresh_from_db()
-        user_profile.profile.profile_Image = validate_image(validated_data['profile_Image'])
-        user_profile.profile.email = validated_data['email']
-        user_profile.profile.bio = validated_data['bio']
-        user_profile.profile.city = validated_data['city']
-        user_profile.profile.state = validated_data['state']
-        user_profile.profile.zipCode = validated_data['zipCode']
-        user_profile.profile.birth_date = validated_data['birth_date']
-        user_profile.profile.seeker = validated_data['seeker']
-        user_profile.profile.save()
-        user = CustomUser.objects.get(id=user_profile.profile.id)
+        user.refresh_from_db()
+        user.profile.save()
         return user
 
 
@@ -53,7 +81,7 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = EmailBackend.authenticate(self, **data)
-
+        print("This is the self parameter", self)
         if user and user.is_active:
             """  If authentication passed, user will be active, else Auth must have failed"""
             return user

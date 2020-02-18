@@ -10,14 +10,14 @@ from django.utils.html import mark_safe
 
 
 def get_image_path(instance, filename):
-    print("Triggered, this is the destination:", str(instance.id), filename)
-    return os.path.join('photos', str(instance.id), filename)
+    print("Triggered, this is the destination:", str(instance), filename)
+    return os.path.join('photos', str(instance), filename)
 
 
 class Profile(models.Model):
     """ This model Profile will be used to create A profile of the User"""
     profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
     bio = models.TextField(max_length=500, blank=True)
     city = models.CharField(max_length=20, blank=True)
     state = models.CharField(max_length=2, blank=True)
@@ -28,7 +28,7 @@ class Profile(models.Model):
     password = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return self.user.username
+        return self.user.email
 
     def image_tag(self):
         return mark_safe('<img src="/photos/%s" width="150" height="150" />' % (self.profile_Image))
@@ -37,5 +37,6 @@ class Profile(models.Model):
 @receiver(post_save, sender=CustomUser)
 def update_user_profile(sender, instance, created, **kwargs):
     if created:
+        print("This is the instance saved", instance)
         Profile.objects.create(user=instance)
     instance.profile.save()

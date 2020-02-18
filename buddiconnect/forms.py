@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 def validate_image(image):
     """ This will Cap the Image to 1500 KB"""
     file_size = image.size
-    limit_kb = 1500 * 30
+    limit_kb = 1500 * 15
     if file_size > limit_kb:
         raise ValidationError("Max size of file is %s KB" % limit_kb)
     return image
