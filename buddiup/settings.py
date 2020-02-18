@@ -39,7 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'rest_framework',
+    'rest_framework.authtoken',
+
     'knox',
     'buddiconnect',
     'buddiaccounts',
@@ -143,9 +146,22 @@ REST_FRAMEWORK = {
     #     'rest_framework.authentication.SessionAuthentication',
     #     'rest_framework.authentication.BasicAuthentication'
     # ),
+    'DEFAULT_AUTHENTICATION_CLASSES': 
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
 
+# email backend for debug (prints to console)
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# email backend using google
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')
+EMAIL_HOST_PASSWORD = os.getenv('GMAIL_KEY')
 #  Helped with creating table for custom user
 # https://stackoverflow.com/questions/25771755/django-operationalerror-no-such-table/37799885

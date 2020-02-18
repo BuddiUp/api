@@ -15,19 +15,23 @@ def validate_image(image):
 
 class SignUpForm(UserCreationForm, forms.Form):
 
-    birth_date = forms.DateField()  # help_text='Require. Format: YYYY-MM-DD')
-    city = forms.CharField(max_length=20)
-    state = forms.CharField(max_length=2)
-    zipCode = forms.CharField(max_length=5)
-    seeker = forms.BooleanField(required=True)
-    profile_Image = forms.ImageField(validators=[validate_image])
+    # birth_date = forms.DateField()  # help_text='Require. Format: YYYY-MM-DD')
+    # city = forms.CharField(max_length=20)
+    # state = forms.CharField(max_length=2)
+    # zipCode = forms.CharField(max_length=5)
+    # seeker = forms.BooleanField(required=True)
+    # profile_Image = forms.ImageField(validators=[validate_image])
 
-    def __init__(self, *args, **kwargs):
-        super(UserCreationForm, self).__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super(UserCreationForm, self).__init__(*args, **kwargs)
 
-        for fieldname in ['username', 'password1', 'password2', 'city', 'seeker', 'profile_Image' , 'state', 'zipCode']:
-            self.fields[fieldname].help_text = None
+    #     # for fieldname in ['username', 'password1', 'password2', 'city', 'seeker', 'profile_Image' , 'state', 'zipCode']:
+    #     #     self.fields[fieldname].help_text = None
+    #     for fieldname in ['username', 'email', 'password1', 'password2']:
+    #         self.fields[fieldname].help_text = None
 
     class Meta:
         model = User
-        fields = ('username', 'birth_date', 'password1', 'password2', 'city' ,'seeker', 'profile_Image', 'state', 'zipCode')
+        
+        # fields = ('username', 'birth_date', 'password1', 'password2', 'city','seeker', 'profile_Image', 'state', 'zipCode')
+        fields = ('username', 'email', 'password1', 'password2')
