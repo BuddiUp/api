@@ -1,15 +1,22 @@
 from rest_framework import serializers
 from buddiconnect.models import Profile
-from buddiconnect.forms import validate_image, compareImages
+from buddiconnect.forms import validate_image
 from .models import EmailBackend, CustomUser
-from os import path
-import pygame
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
         model = CustomUser
+        fields = "__all__"
+
+
+class ProfileDisplaySerializer(serializers.ModelSerializer):
+    """ Profile Serializer """
+
+    class Meta:
+        model = Profile
         fields = "__all__"
 
 
@@ -20,30 +27,34 @@ class UserSearchSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.Serializer):
     '''User Serializer'''
-    class Meta:
-        model = Profile
-        fields = ('bio', 'city', 'state', 'zipCode', 'birth_date', 'seeker', 'profile_Image')
+    birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
+    city = serializers.CharField(required=False, max_length=20)
+    state = serializers.CharField(required=False, max_length=2)
+    zipCode = serializers.CharField(required=False, max_length=5)
+    seeker = serializers.BooleanField(required=False)  # By default its false
+    profile_Image = serializers.ImageField(required=False, validators=[validate_image])
 
-        def create(self, validated_data):
-            """ Validate that the user is Connected"""
-            user = CustomUser.objects.get(email=self.request.user.email)
-            image_Comparison = compareImages(user.profile.profile_Image, validate_image(validated_data['profile_Image']))
-            if user.bio != validated_data['bio']:
-                user.profile.bio = validated_data['bio']
-            if user.bio != validated_data['city']:
-                user.profile.city = validated_data['city']
-            if user.state != validated_data['state']:
-                user.profile.state = validated_data['state']
-            if user.zipCode != validated_data['zipCode']:
-                user.profile.zipCode = validated_data['zipCode']
-            if user.birth_date != validated_data['birth_date']:
-                user.profile.birth_date = validated_data['birth_date']
-            if user.seeker != validated_data['seeker']:
-                user.profile.seeker = validated_data['seeker']
-            if image_Comparison is False:
-                user.profile.profile_Image = validate_image(validated_data['profile_Image'])
+    parser_classes = [FormParser, MultiPartParser]
+
+    def save(self, request, filename):
+
+        if self['birth_date'].value is not None:
+            self.context['request'].user.profile.birth_date = self.validated_data['birth_date']
+        if self['city'].value is not None:
+            self.context['request'].user.profile.city = self.validated_data['city']
+        if self['state'].value is not None:
+            self.context['request'].user.profile.state = self.validated_data['state']
+        if self['zipCode'].value is not None:
+            self.context['request'].user.profile.zipCode = self.validated_data['zipCode']
+        if self['profile_Image'].value is not None:
+            self.context['request'].user.profile.profile_Image = validate_image(self.validated_data['profile_Image'])
+        if request.data.get('profile_Image', False):
+            self.context['request'].user.profile.profile_Image = request.data['profile_Image']
+        if self['seeker'].value is False and self.validated_data['seeker'] is True:
+            self.context['request'].user.profile.seeker = self.validated_data['seeker']
+        self.context['request'].user.profile.save()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -58,12 +69,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # validated_data handles hashing of the password
         user = CustomUser.objects.create_user(
              validated_data['email'], validated_data['password'])
-        # user_profile = CustomUser.objects.get(email=validated_data['email'])
         user.refresh_from_db()
-        # image = pygame.image.load(path.join('api/default_Images/photos', 'default-image.png'))
-        # user.profile.profile_Image = pygame.display(image)
-        # print("Image", user.profile.profile_Image)
-
         user.profile.save()
         return user
 

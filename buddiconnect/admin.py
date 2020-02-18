@@ -8,7 +8,7 @@ from .models import Profile
 class ProfileAdmin(admin.ModelAdmin):
     fields = ['image_tag', 'birth_date', 'city', 'state', 'zipCode', 'seeker']
     readonly_fields = ['image_tag']
-    list_display = ['image_tag']
+    list_display = ['image_tag', 'user']
 
 
 admin.site.register(Profile, ProfileAdmin)

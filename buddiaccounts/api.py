@@ -1,7 +1,9 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from knox.models import AuthToken
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer
+from .permissions_file import TokenPermission
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer
 
 '''
 ####### Using PostMan to test #######
@@ -76,16 +78,17 @@ class ProfileAPI(generics.GenericAPIView):
     serializer_class = ProfileSerializer
 
     permission_classes = [
-        permissions.IsAuthenticated,
+        TokenPermission,
     ]
+    parser_class = (MultiPartParser, FormParser)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, format=None, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
+        serializer.save(request, request.FILES)
         return Response({
             # Sends a serialized user as a response
-            "user": ProfileSerializer(user, context=self.get_serializer_context()).data,
+            "user": ProfileDisplaySerializer(request.user.profile, context=self.get_serializer_context()).data,
         })
 
 
