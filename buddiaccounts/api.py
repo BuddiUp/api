@@ -1,9 +1,10 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-from knox.models import AuthToken
-from .permissions_file import TokenPermission
 from rest_framework.parsers import MultiPartParser, FormParser
+from knox.models import AuthToken
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer
+
+from .permissions_file import TokenPermission
 
 '''
 ####### Using PostMan to test #######
