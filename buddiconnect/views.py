@@ -2,21 +2,23 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from django.template import loader
-from .forms import SignUpForm
-from .models import Profile
-from .serializers import ProfileSerializer
+
 from django.http import HttpResponse
 from rest_framework import generics
 # from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, logout
 
 from django.contrib.sites.shortcuts import get_current_site
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from .tokens import account_activation_token
 from django.contrib.auth.models import User
 from django.core.mail import EmailMessage
+
+from .forms import SignUpForm
+from .models import Profile
+from .serializers import ProfileSerializer
 
 # Create your views here.
 

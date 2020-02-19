@@ -2,9 +2,17 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from knox.models import AuthToken
+
+# imports for confirmation email
+from django.contrib.sites.shortcuts import get_current_site
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer
 
-from .permissions_file import TokenPermission
+from .permissions_file import TokenPermission, account_activation_token
 
 '''
 ####### Using PostMan to test #######
@@ -56,6 +64,20 @@ class RegisterAPI(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        # Send confirmation email
+        current_site = get_current_site(request)
+        email_subject = 'Activate Your Account'
+        message = render_to_string('signupPage/activate_account.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': account_activation_token.make_token(user),
+        })
+        to_email = serializer.cleaned_data.get('email')
+        email = EmailMessage(email_subject, message, to=[to_email])
+        email.send()
+
         return Response({
             # Sends a serialized user as a response
             "user": UserSerializer(user, context=self.get_serializer_context()).data,

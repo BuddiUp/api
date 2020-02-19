@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'buddiconnect',
     'buddiaccounts',
 ]
+
 AUTH_USER_MODEL = 'buddiaccounts.CustomUser'
 
 MIDDLEWARE = [
@@ -138,19 +139,20 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = 'api/photos'  # Make sure root is set before the saving on board
 MEDIA_URL = '/photos/'
 REST_FRAMEWORK = {
-    # 'DEFAULT_PERMISSION_CLASSES': (
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     # 'DEFAULT_AUTHENTICATION_CLASSES': (
     #     'knox.auth.TokenAuthentication',
     #     'rest_framework.authentication.SessionAuthentication',
     #     'rest_framework.authentication.BasicAuthentication'
     # ),
-    'DEFAULT_AUTHENTICATION_CLASSES': 
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10
+    'DEFAULT_AUTHENTICATION_CLASSES': ( 
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication',
+        ),
+    'DEFAULT_PAGINATION_CLASS': ('rest_framework.pagination.PageNumberPagination',),
+    'PAGE_SIZE': 10,
 }
 
 # email backend for debug (prints to console)

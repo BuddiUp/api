@@ -38,7 +38,7 @@ class ProfileSerializer(serializers.Serializer):
 
     parser_classes = [FormParser, MultiPartParser]
 
-    def save(self, request, filename):
+    def save(self, request):
 
         if self['birth_date'].value is not None:
             self.context['request'].user.profile.birth_date = self.validated_data['birth_date']
