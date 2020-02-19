@@ -21,10 +21,10 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     city = models.CharField(max_length=20, blank=True)
     state = models.CharField(max_length=2, blank=True)
-    zipCode = models.CharField(max_length=5, blank=True)
+    zipCode = models.CharField(max_length=6, blank=True)
     email = models.EmailField(max_length=254, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    seeker = models.BooleanField(null=True)
+    seeker = models.BooleanField(default=True, blank=True)
     password = models.CharField(max_length=100, blank=True)
 
     def __str__(self):

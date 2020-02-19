@@ -71,7 +71,15 @@ class SearchUserAPI(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         """ Make sure the user is authenticated before search is enabled"""
-        pass
+        serializer = self.get_serializer()
+        list = serializer.search(request)
+        new_list = []
+        for profile in list:
+            new_list.append(ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data)
+        return Response({
+            # Sends a serialized user as a response
+            "userProfiles": new_list,
+        })
 
 
 class ProfileAPI(generics.GenericAPIView):

@@ -2,7 +2,9 @@ from rest_framework import serializers
 from buddiconnect.models import Profile
 from buddiconnect.forms import validate_image
 from .models import EmailBackend, CustomUser
+import requests
 from rest_framework.parsers import MultiPartParser, FormParser
+# 241EHLGNGW3A9GRI17OO API KEY
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,21 +23,35 @@ class ProfileDisplaySerializer(serializers.ModelSerializer):
 
 
 class UserSearchSerializer(serializers.ModelSerializer):
+    max_radius = serializers.CharField(required=True, max_length=3)
 
-    class Meta:
-        model = CustomUser
-        fields = "__all__"
+    def search(self, request):
+        """ Find a faster query solution self note"""
+        list = []
+        user_profile = Profile.objects.get(id=request.user.id)
+        params = {
+                'zipcode': user_profile.zipCode,
+                'maximumradius': request.data.get('max_radius'),
+                'minimumradius': 0,  #  Minimum Radius will stay at 0
+                'key': '241EHLGNGW3A9GRI17OO'
+        }
+        response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?', params)
+        result = response.json()
+        for zip in result['DataList']:
+            profile_list = Profile.objects.filter(zipCode=zip['Code']).exclude(id=user_profile.id)
+            for item in profile_list:
+                list.append(item)
+        return list
 
 
 class ProfileSerializer(serializers.Serializer):
     '''User Serializer'''
     birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
     city = serializers.CharField(required=False, max_length=20)
-    state = serializers.CharField(required=False, max_length=2)
-    zipCode = serializers.CharField(required=False, max_length=5)
+    state = serializers.CharField(required=False, min_length=2)
+    zipCode = serializers.CharField(required=False, min_length=5)
     seeker = serializers.BooleanField(required=False)  # By default its false
     profile_Image = serializers.ImageField(required=False, validators=[validate_image])
-
     parser_classes = [FormParser, MultiPartParser]
 
     def save(self, request, filename):
