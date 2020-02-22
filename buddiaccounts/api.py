@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
+from django.http import HttpResponse
 from knox.models import AuthToken
 
 # imports for confirmation email
@@ -12,7 +13,7 @@ from django.core.mail import EmailMessage
 from .permissions_file import TokenPermission, account_activation_token
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer
-
+import json
 '''
 ####### Using PostMan to test #######
 BODY REFERENCE:
@@ -62,8 +63,17 @@ class RegisterAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
+        try:
+            user = serializer.save()
+        except Exception:
+            """ Check if the zipCode caused the problem"""
+            """ Third Party API Must have failed"""
+            context = {
+                'status': '400', 'message': 'ZipCode was invalid or email already exists'
+                }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
          # Send confirmation email
         current_site = get_current_site(request)
         email_subject = 'Activate Your Account'
@@ -86,15 +96,23 @@ class RegisterAPI(generics.GenericAPIView):
 
 class SearchUserAPI(generics.GenericAPIView):
 
-    permission_classes = [
-        permissions.IsAuthenticated,
-        ]
+    # permission_classes = [
+    #     permissions.IsAuthenticated,
+    #     ]
     serializer_class = UserSearchSerializer
 
     def post(self, request, *args, **kwargs):
         """ Make sure the user is authenticated before search is enabled"""
         serializer = self.get_serializer()
         list = serializer.search(request)
+        if list is None or len(list) == 0:
+            """ Third Party API Must have failed"""
+            context = {
+                'status': '400', 'No Data collected from zipCode': 'you can access this view only via ajax'
+            }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
         new_list = []
         for profile in list:
             new_list.append(ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data)
@@ -115,7 +133,21 @@ class ProfileAPI(generics.GenericAPIView):
     def post(self, request, format=None, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(request, request.FILES)
+        try:
+            zipCode = serializer.data['zipcode']
+        except Exception:
+            zipCode = None
+        api_response = serializer.validate_ZipCode(request)
+        if api_response is None and zipCode is not None:
+            """ No Data for ZipCode"""
+            context = {
+                'status': '400', 'No Data collected from zipCode': 'you can access this view only via ajax'
+            }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
+        else:
+            serializer.save(request, request.FILES, api_response)
         return Response({
             # Sends a serialized user as a response
             "user": ProfileDisplaySerializer(request.user.profile, context=self.get_serializer_context()).data,
@@ -146,11 +178,12 @@ class UserAPI(generics.RetrieveAPIView):
     ####### User API #######
     returns:
         - The user that is associated with the request via the token
+        This will only display the user's Email
     '''
     permission_classes = [
         permissions.IsAuthenticated,
     ]
-    serializer_class = ProfileSerializer
+    serializer_class = UserSerializer
 
     def get_object(self):
-        return self.request.user.profile
+        return self.request.user
