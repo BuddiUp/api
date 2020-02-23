@@ -50,6 +50,9 @@ UserAPI:
         - VALUE: Token (get token from LoginAPI)
     - Hit send
 '''
+'''  ADDED ZIPCODE VALIDATION WITH INCREASE SPEED, WILL OPTIMIZE SOON
+    2/22/2020
+'''
 
 
 class RegisterAPI(generics.GenericAPIView):

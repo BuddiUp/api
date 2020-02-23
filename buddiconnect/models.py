@@ -2,6 +2,7 @@ from django.db import models
 from buddiaccounts.models import CustomUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator, MaxValueValidator
 import os
 from django.utils.html import mark_safe
 
@@ -23,10 +24,13 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     city = models.CharField(max_length=20, blank=True)
     state = models.CharField(max_length=2, blank=True)
-    zipcode = models.CharField(max_length=6, blank=True)
+    zipcode = models.IntegerField(null=True, blank=True)
     email = models.EmailField(max_length=254, blank=True)
     gender = models.CharField(max_length=1, blank=True)
-    birth_date = models.DateField(null=True, blank=True)
+    birth_month = models.CharField(max_length=2,  blank=True)
+    birth_day = models.CharField(max_length=2,  blank=True)
+    birth_year = models.CharField(max_length=4, blank=True)
+    age = models.CharField(max_length=3, blank=True)
     seeker = models.BooleanField(default=True, blank=True)
     password = models.CharField(max_length=100, blank=True)
 

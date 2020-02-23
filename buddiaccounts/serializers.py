@@ -4,6 +4,7 @@ from buddiconnect.forms import validate_image
 from .models import EmailBackend, CustomUser
 from rest_framework.parsers import MultiPartParser, FormParser
 from dotenv import load_dotenv
+from django.utils import timezone
 """  Imports start below this line """
 import requests
 import os
@@ -72,8 +73,6 @@ class UserSearchSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.Serializer):
     '''User Serializer'''
     birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
-    city = serializers.CharField(required=False, max_length=20)
-    state = serializers.CharField(required=False, min_length=2)
     zipcode = serializers.CharField(required=False, min_length=5)
     seeker = serializers.BooleanField(required=False)  # By default its false
     profile_Image = serializers.ImageField(required=False, validators=[validate_image])
@@ -104,12 +103,8 @@ class ProfileSerializer(serializers.Serializer):
 
         if self['birth_date'].value is not None:
             self.context['request'].user.profile.birth_date = self.validated_data['birth_date']
-        if self['city'].value is not None:
-            self.context['request'].user.profile.city = self.validated_data['city']
         if self['name'].value is not None:
             self.context['request'].user.profile.name = self.validated_data['name']
-        if self['state'].value is not None:
-            self.context['request'].user.profile.state = self.validated_data['state']
         if self['zipcode'].value is not None:
             """ Update both state and city when ZipCode is updated"""
             self.context['request'].user.profile.city = result['City']
@@ -128,7 +123,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     '''Register Serializer'''
     class Meta:
         model = Profile
-        fields = ('email', 'password', 'zipcode', 'gender', 'name', 'last_name')
+        fields = ('email', 'password', 'zipcode', 'name', 'last_name', 'gender', 'birth_day', 'birth_month', 'birth_year')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -160,9 +155,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.gender = validated_data['gender']
         user.profile.name = validated_data['name']
         user.profile.last_name = validated_data['last_name']
+        user.profile.birth_day = validated_data['birth_day']
+        user.profile.birth_month = validated_data['birth_month']
+        user.profile.birth_year = validated_data['birth_year']
         # Replace Nones with raise HTTP Responses in the future
         user.profile.state = result['State']
         user.profile.city = result['City']
+        user.profile.age = timezone.now().year - int(validated_data['birth_year'])
         user.profile.save()
         print("User registering", user)
         return user
@@ -177,6 +176,8 @@ class LoginSerializer(serializers.Serializer):
         user = EmailBackend.authenticate(self, **data)
         if user and user.is_active:
             """  If authentication passed, user will be active, else Auth must have failed"""
+            user.profile.age = timezone.now().year - int(user.profile.birth_year)
+            user.profile.save()
             return user
         else:
             raise serializers.ValidationError("Incorrect Credentials")
