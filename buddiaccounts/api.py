@@ -64,7 +64,7 @@ class RegisterAPI(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-         # Send confirmation email
+        # Send confirmation email
         current_site = get_current_site(request)
         email_subject = 'Activate Your Account'
         message = render_to_string('signupPage/activate_account.html', {
@@ -88,7 +88,7 @@ class SearchUserAPI(generics.GenericAPIView):
 
     permission_classes = [
         permissions.IsAuthenticated,
-        ]
+    ]
     serializer_class = UserSearchSerializer
 
     def post(self, request, *args, **kwargs):
@@ -97,7 +97,8 @@ class SearchUserAPI(generics.GenericAPIView):
         list = serializer.search(request)
         new_list = []
         for profile in list:
-            new_list.append(ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data)
+            new_list.append(ProfileDisplaySerializer(
+                profile, context=self.get_serializer_context()).data)
         return Response({
             # Sends a serialized user as a response
             "userProfiles": new_list,

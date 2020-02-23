@@ -5,7 +5,7 @@ from django.dispatch import receiver
 import os
 from django.utils.html import mark_safe
 
-#https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html
+# https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html
 # Link to Articled that explained the process in the Models
 
 
@@ -16,8 +16,10 @@ def get_image_path(instance, filename):
 
 class Profile(models.Model):
     """ This model Profile will be used to create A profile of the User"""
-    profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
+    profile_Image = models.ImageField(
+        upload_to=get_image_path, blank=True, null=True)
+    user = models.OneToOneField(
+        CustomUser, on_delete=models.CASCADE, null=True)
     bio = models.TextField(max_length=500, blank=True)
     city = models.CharField(max_length=20, blank=True)
     state = models.CharField(max_length=2, blank=True)

@@ -30,15 +30,17 @@ class UserSearchSerializer(serializers.ModelSerializer):
         list = []
         user_profile = Profile.objects.get(id=request.user.id)
         params = {
-                'zipcode': user_profile.zipCode,
-                'maximumradius': request.data.get('max_radius'),
-                'minimumradius': 0,  #  Minimum Radius will stay at 0
-                'key': '241EHLGNGW3A9GRI17OO'
+            'zipcode': user_profile.zipCode,
+            'maximumradius': request.data.get('max_radius'),
+            'minimumradius': 0,  # Minimum Radius will stay at 0
+            'key': '241EHLGNGW3A9GRI17OO'
         }
-        response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?', params)
+        response = requests.get(
+            'https://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?', params)
         result = response.json()
         for zip in result['DataList']:
-            profile_list = Profile.objects.filter(zipCode=zip['Code']).exclude(id=user_profile.id)
+            profile_list = Profile.objects.filter(
+                zipCode=zip['Code']).exclude(id=user_profile.id)
             for item in profile_list:
                 list.append(item)
         return list
@@ -46,12 +48,14 @@ class UserSearchSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.Serializer):
     '''User Serializer'''
-    birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
+    birth_date = serializers.DateField(
+        required=False)  # help_text='Require. Format: YYYY-MM-DD')
     city = serializers.CharField(required=False, max_length=20)
     state = serializers.CharField(required=False, min_length=2)
     zipCode = serializers.CharField(required=False, min_length=5)
     seeker = serializers.BooleanField(required=False)  # By default its false
-    profile_Image = serializers.ImageField(required=False, validators=[validate_image])
+    profile_Image = serializers.ImageField(
+        required=False, validators=[validate_image])
     parser_classes = [FormParser, MultiPartParser]
 
     def save(self, request, filename):
@@ -65,7 +69,8 @@ class ProfileSerializer(serializers.Serializer):
         if self['zipCode'].value is not None:
             self.context['request'].user.profile.zipCode = self.validated_data['zipCode']
         if self['profile_Image'].value is not None:
-            self.context['request'].user.profile.profile_Image = validate_image(self.validated_data['profile_Image'])
+            self.context['request'].user.profile.profile_Image = validate_image(
+                self.validated_data['profile_Image'])
         if request.data.get('profile_Image', False):
             self.context['request'].user.profile.profile_Image = request.data['profile_Image']
         if self['seeker'].value is False and self.validated_data['seeker'] is True:
@@ -84,7 +89,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # load the profile instance created by the signal
         # validated_data handles hashing of the password
         user = CustomUser.objects.create_user(
-             validated_data['email'], validated_data['password'])
+            validated_data['email'], validated_data['password'])
         user.refresh_from_db()
         user.profile.save()
         return user
