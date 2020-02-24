@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
         model = CustomUser
-        fields = ('email',)
+        fields = ('email', 'last_name', 'name')
 
 
 class ProfileDisplaySerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class ProfileDisplaySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = "__all__"
+        exclude = ('password',)
 
 
 class UserSearchSerializer(serializers.ModelSerializer):
@@ -64,9 +64,12 @@ class UserSearchSerializer(serializers.ModelSerializer):
                 """ There is data in the result"""
                 pass
         for zip in result['DataList']:
-            profile_list = Profile.objects.filter(zipcode=zip['Code']).exclude(id=user_profileID)
+            profile_list = Profile.objects.filter(zipcode=int(zip['Code'])).exclude(id=user_profileID)
             for item in profile_list:
                 list.append(item)
+        if len(list) == 0:
+            """ No profiles near zipCode and readius given"""
+            return None
         return list
 
 
@@ -96,7 +99,6 @@ class ProfileSerializer(serializers.Serializer):
                 """ There is data in the result or result call is empty"""
                 if len(result) == 0:
                     return None
-        print("Result", result)
         return result
 
     def save(self, request, filename, result):
@@ -114,7 +116,7 @@ class ProfileSerializer(serializers.Serializer):
             self.context['request'].user.profile.profile_Image = validate_image(self.validated_data['profile_Image'])
         if request.data.get('profile_Image', False):
             self.context['request'].user.profile.profile_Image = request.data['profile_Image']
-        if self['seeker'].value is False and self.validated_data['seeker'] is True:
+        if self['seeker'].value is not None:
             self.context['request'].user.profile.seeker = self.validated_data['seeker']
         self.context['request'].user.profile.save()
 
@@ -130,7 +132,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         # load the profile instance created by the signal
         try:
             params = {
-                    'key': os.getenv('zipCodekey', 'lkadnflksandl%&*^&*#lkjlkasdj<..,(++)')
+                    'key': os.getenv('zipCodekey', '---202992928--')
             }
             response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/QuickGetZipCodeDetails/{}?'.format(validated_data['zipcode']), params)
             result = response.json()
@@ -141,7 +143,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         if result is None or len(result) <= 1:
             try:
                 if result['Error'] is not None:
-                    print("Got the error")
+                    print("Got the error", result)
                     return None
             except Exception:
                 """ There is data in the result or its empty"""
@@ -150,6 +152,9 @@ class RegisterSerializer(serializers.ModelSerializer):
                     return None
         user = CustomUser.objects.create_user(
              validated_data['email'], validated_data['password'])
+        user.name = validated_data['name']
+        user.last_name = validated_data['last_name']
+        user.save()
         user.refresh_from_db()
         user.profile.zipcode = validated_data['zipcode']
         user.profile.gender = validated_data['gender']
@@ -158,6 +163,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.birth_day = validated_data['birth_day']
         user.profile.birth_month = validated_data['birth_month']
         user.profile.birth_year = validated_data['birth_year']
+        user.profile.email = validated_data['email']
         # Replace Nones with raise HTTP Responses in the future
         user.profile.state = result['State']
         user.profile.city = result['City']
