@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'knox',
     'buddiconnect',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'buddiaccounts.CustomUser'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -143,13 +145,14 @@ REST_FRAMEWORK = {
     # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'knox.auth.TokenAuthentication',
-         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
 
+CORS_ORIGIN_ALLOW_ALL = True
 # email backend for debug (prints to console)
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
@@ -158,7 +161,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')  # Add this key and the one below it to the .env file
+# Add this key and the one below it to the .env file
+EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')
 EMAIL_HOST_PASSWORD = os.getenv('GMAIL_KEY')
 
 #  Helped with creating table for custom user
