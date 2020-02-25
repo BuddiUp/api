@@ -73,8 +73,9 @@ class RegisterAPI(generics.GenericAPIView):
             """ Third Party API Must have failed"""
             context = {
                 'status': '400', 'message': 'ZipCode was invalid or email already exists'
-                }
-            response = HttpResponse(json.dumps(context), content_type='application/json')
+            }
+            response = HttpResponse(json.dumps(
+                context), content_type='application/json')
             response.status_code = 400
             return response
          # Send confirmation email
@@ -113,12 +114,14 @@ class SearchUserAPI(generics.GenericAPIView):
             context = {
                 'status': '400', 'No Data collected from zipCode': 'you can access this view only via ajax'
             }
-            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response = HttpResponse(json.dumps(
+                context), content_type='application/json')
             response.status_code = 400
             return response
         new_list = []
         for profile in list:
-            new_list.append(ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data)
+            new_list.append(ProfileDisplaySerializer(
+                profile, context=self.get_serializer_context()).data)
         return Response({
             # Sends a serialized user as a response
             "userProfiles": new_list,
@@ -146,7 +149,8 @@ class ProfileAPI(generics.GenericAPIView):
             context = {
                 'status': '400', 'No Data collected from zipCode': 'you can access this view only via ajax'
             }
-            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response = HttpResponse(json.dumps(
+                context), content_type='application/json')
             response.status_code = 400
             return response
         else:
@@ -171,7 +175,7 @@ class LoginAPI(generics.GenericAPIView):
         user = serializer.validated_data
         return Response({
             # Sends a serialized user as a response
-            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "user": ProfileDisplaySerializer(user.profile, context=self.get_serializer_context()).data,
             "token": AuthToken.objects.create(user)[1]
         })
 
@@ -186,7 +190,7 @@ class UserAPI(generics.RetrieveAPIView):
     permission_classes = [
         permissions.IsAuthenticated,
     ]
-    serializer_class = UserSerializer
+    serializer_class = ProfileDisplaySerializer
 
     def get_object(self):
-        return self.request.user
+        return self.request.user.profile

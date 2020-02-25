@@ -44,13 +44,14 @@ class UserSearchSerializer(serializers.ModelSerializer):
         if request.data.get('max_radius') is not None:
             max_radius = request.data.get('max_radius')
         params = {
-                'zipcode': request.data.get('zipcode'),
-                'maximumradius': max_radius,
-                'minimumradius': 0,  #  Minimum Radius will stay at 0
-                'key': os.getenv('zipCodekey', 'lkadnflksandl%&*^&*#lkjlkasdj<..,(++)')
+            'zipcode': request.data.get('zipcode'),
+            'maximumradius': max_radius,
+            'minimumradius': 0,  # Minimum Radius will stay at 0
+            'key': os.getenv('zipCodekey', 'lkadnflksandl%&*^&*#lkjlkasdj<..,(++)')
         }
         try:
-            response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?', params)
+            response = requests.get(
+                'https://api.zip-codes.com/ZipCodesAPI.svc/1.0/FindZipCodesInRadius?', params)
             result = response.json()
         except Exception:
             print("Error in Third Party API in User Search API")
@@ -64,7 +65,8 @@ class UserSearchSerializer(serializers.ModelSerializer):
                 """ There is data in the result"""
                 pass
         for zip in result['DataList']:
-            profile_list = Profile.objects.filter(zipcode=int(zip['Code'])).exclude(id=user_profileID)
+            profile_list = Profile.objects.filter(
+                zipcode=int(zip['Code'])).exclude(id=user_profileID)
             for item in profile_list:
                 list.append(item)
         if len(list) == 0:
@@ -75,19 +77,22 @@ class UserSearchSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.Serializer):
     '''User Serializer'''
-    birth_date = serializers.DateField(required=False)  # help_text='Require. Format: YYYY-MM-DD')
+    birth_date = serializers.DateField(
+        required=False)  # help_text='Require. Format: YYYY-MM-DD')
     zipcode = serializers.CharField(required=False, min_length=5)
     seeker = serializers.BooleanField(required=False)  # By default its false
-    profile_Image = serializers.ImageField(required=False, validators=[validate_image])
+    profile_Image = serializers.ImageField(
+        required=False, validators=[validate_image])
     parser_classes = [FormParser, MultiPartParser]
     name = serializers.CharField(required=False, max_length=25)
 
     def validate_ZipCode(self, request):
         try:
             params = {
-                    'key': os.getenv('zipCodekey', 'lkadnflksandl%&*^&*#lkjlkasdj<..,(++)')
+                'key': os.getenv('zipCodekey', 'lkadnflksandl%&*^&*#lkjlkasdj<..,(++)')
             }
-            response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/QuickGetZipCodeDetails/{}?'.format(self['zipcode'].value), params)
+            response = requests.get(
+                'https://api.zip-codes.com/ZipCodesAPI.svc/1.0/QuickGetZipCodeDetails/{}?'.format(self['zipcode'].value), params)
             result = response.json()
         except Exception:
             print("Could not Update city and state by ZipCode in update API")
@@ -113,7 +118,8 @@ class ProfileSerializer(serializers.Serializer):
             self.context['request'].user.profile.state = result['State']
             self.context['request'].user.profile.zipcode = self.validated_data['zipcode']
         if self['profile_Image'].value is not None:
-            self.context['request'].user.profile.profile_Image = validate_image(self.validated_data['profile_Image'])
+            self.context['request'].user.profile.profile_Image = validate_image(
+                self.validated_data['profile_Image'])
         if request.data.get('profile_Image', False):
             self.context['request'].user.profile.profile_Image = request.data['profile_Image']
         if self['seeker'].value is not None:
@@ -125,16 +131,18 @@ class RegisterSerializer(serializers.ModelSerializer):
     '''Register Serializer'''
     class Meta:
         model = Profile
-        fields = ('email', 'password', 'zipcode', 'name', 'last_name', 'gender', 'birth_day', 'birth_month', 'birth_year')
+        fields = ('email', 'password', 'zipcode', 'name', 'last_name',
+                  'gender', 'birth_day', 'birth_month', 'birth_year')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         # load the profile instance created by the signal
         try:
             params = {
-                    'key': os.getenv('zipCodekey', '---202992928--')
+                'key': os.getenv('zipCodekey', '---202992928--')
             }
-            response = requests.get('https://api.zip-codes.com/ZipCodesAPI.svc/1.0/QuickGetZipCodeDetails/{}?'.format(validated_data['zipcode']), params)
+            response = requests.get(
+                'https://api.zip-codes.com/ZipCodesAPI.svc/1.0/QuickGetZipCodeDetails/{}?'.format(validated_data['zipcode']), params)
             result = response.json()
         except Exception:
             """ API RETURNED AN ERROR MESSAGE"""
@@ -151,7 +159,7 @@ class RegisterSerializer(serializers.ModelSerializer):
                     print("Error 2")
                     return None
         user = CustomUser.objects.create_user(
-             validated_data['email'], validated_data['password'])
+            validated_data['email'], validated_data['password'])
         user.name = validated_data['name']
         user.last_name = validated_data['last_name']
         user.save()
@@ -167,7 +175,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Replace Nones with raise HTTP Responses in the future
         user.profile.state = result['State']
         user.profile.city = result['City']
-        user.profile.age = timezone.now().year - int(validated_data['birth_year'])
+        user.profile.age = timezone.now().year - \
+            int(validated_data['birth_year'])
         user.profile.save()
         print("User registering", user)
         return user
