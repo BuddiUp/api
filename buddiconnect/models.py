@@ -17,8 +17,8 @@ def get_image_path(instance, filename):
 
 class Profile(models.Model):
     """ This model Profile will be used to create A profile of the User"""
-    profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
+    profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True, default='api/default_Images/photos/default-image.png')
     name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     bio = models.TextField(max_length=500, blank=True)
@@ -26,14 +26,15 @@ class Profile(models.Model):
     state = models.CharField(max_length=2, blank=True)
     zipcode = models.IntegerField(null=True, blank=True)
     email = models.EmailField(max_length=254, blank=True)
-    gender = models.CharField(max_length=1, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
     birth_month = models.CharField(max_length=2,  blank=True)
     birth_day = models.CharField(max_length=2,  blank=True)
     birth_year = models.CharField(max_length=4, blank=True)
     age = models.CharField(max_length=3, blank=True)
     seeker = models.BooleanField(default=True, blank=True)
     password = models.CharField(max_length=100, blank=True)
-
+    profile_urlfield = models.URLField(max_length=200)
+    
     def __str__(self):
         return self.user.email
 
@@ -44,6 +45,5 @@ class Profile(models.Model):
 @receiver(post_save, sender=CustomUser)
 def update_user_profile(sender, instance, created, **kwargs):
     if created:
-        print("This is the instance saved", instance)
         Profile.objects.create(user=instance)
     instance.profile.save()

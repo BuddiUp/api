@@ -4,8 +4,9 @@ from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-
 from .managers import CustomUserManager
+import uuid
+import base64
 
 
 class EmailBackend(object):
@@ -32,6 +33,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    userid = models.CharField(max_length=100, blank=True, unique=True, null=True, default=base64.urlsafe_b64encode(uuid.uuid1().bytes).rstrip(b'=').decode('ascii'))
     date_joined = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=100, blank=True)

@@ -12,7 +12,7 @@ from django.core.mail import EmailMessage
 
 from .permissions_file import TokenPermission, account_activation_token
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer, GetProfileSerializer
 import json
 '''
 ####### Using PostMan to test #######
@@ -66,6 +66,7 @@ class RegisterAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        # print(serializer.save()) #Uncomment this to debug
         try:
             user = serializer.save()
         except Exception:
@@ -108,10 +109,18 @@ class SearchUserAPI(generics.GenericAPIView):
         """ Make sure the user is authenticated before search is enabled"""
         serializer = self.get_serializer()
         list = serializer.search(request)
-        if list is None or len(list) == 0:
-            """ Third Party API Must have failed"""
+        if list is None:
+            """ Third Party API Must have failed or Error message"""
             context = {
-                'status': '400', 'No Data collected from zipCode': 'you can access this view only via ajax'
+                'status': '400', 'Invalid zip or Error with third Party API': 'you can access this view only via ajax'
+            }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
+        if len(list) == 0:
+            """ No nearby users found """
+            context = {
+                'status': '420', 'NO USERS NEARBY': 'you can access this view only via ajax'
             }
             response = HttpResponse(json.dumps(context), content_type='application/json')
             response.status_code = 400
@@ -186,7 +195,41 @@ class UserAPI(generics.RetrieveAPIView):
     permission_classes = [
         permissions.IsAuthenticated,
     ]
-    serializer_class = UserSerializer
+    serializer_class = ProfileDisplaySerializer
 
     def get_object(self):
-        return self.request.user
+        return self.request.user.profile
+
+
+class ProfileRequestAPI(generics.RetrieveAPIView):
+    '''
+    ####### Profile Request API #######
+    returns:
+        - The user that is associated with the request via the token
+        This will only display the user's Email
+    '''
+    # permission_classes = [
+    #     permissions.IsAuthenticated,
+    # ]
+    #
+    # def get(self, request, *args, **kwargs):
+    #     print("Got request")
+    #     serializer_class.profile_Request(request)
+    serializer_class = GetProfileSerializer
+
+    def get(self, request):
+        serializer = self.get_serializer(data=request.data)
+        profile = serializer.profile_Request(request)
+        if profile is None:
+            context = {
+                'status': '404', 'No Porfile found': 'Redirect to HomePage'
+            }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
+        else:
+            print("Responding")
+            return Response({
+                # Sends a serialized user as a response
+                "user": ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data,
+            })

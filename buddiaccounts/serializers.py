@@ -5,10 +5,11 @@ from .models import EmailBackend, CustomUser
 from rest_framework.parsers import MultiPartParser, FormParser
 from dotenv import load_dotenv
 from django.utils import timezone
+from helper_functions.helper_functions import capitalize_format, randomUsers
 """  Imports start below this line """
 import requests
 import os
-
+from urllib.parse import parse_qs, urlparse
 load_dotenv()  # This will enable to unload the keys secretly
 
 
@@ -16,7 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
         model = CustomUser
-        fields = ('email', 'last_name', 'name')
+        fields = ('email', 'last_name', 'name', 'userid',)
 
 
 class ProfileDisplaySerializer(serializers.ModelSerializer):
@@ -30,12 +31,16 @@ class ProfileDisplaySerializer(serializers.ModelSerializer):
 class UserSearchSerializer(serializers.ModelSerializer):
     """ This will search for users in the area if given or near the user"""
     max_radius = serializers.CharField(required=False, max_length=3)
-    zipcode = serializers.CharField(required=True, max_length=6)
+    zipcode = serializers.CharField(required=False, max_length=6)
+    random_users = serializers.BooleanField(required=True)
 
     def search(self, request):
         """ Find a faster query solution self note"""
         list = []
         max_radius = 0
+        if bool(request.data.get('random_users')) is True:
+            random_amount = 25  # This is the user amount we want to retrieve
+            return randomUsers(random_amount)
         try:
             user_profileID = Profile.objects.get(id=request.user.profile.id).id
         except Exception:
@@ -64,12 +69,12 @@ class UserSearchSerializer(serializers.ModelSerializer):
                 """ There is data in the result"""
                 pass
         for zip in result['DataList']:
-            profile_list = Profile.objects.filter(zipcode=int(zip['Code'])).exclude(id=user_profileID)
+            profile_list = Profile.objects.filter(zipcode=int(zip['Code'])).exclude(id=user_profileID, seeker=False)
             for item in profile_list:
                 list.append(item)
-        if len(list) == 0:
-            """ No profiles near zipCode and readius given"""
-            return None
+        # if len(list) == 0:
+        #     """ No profiles near zipCode and readius given"""
+        #     return None
         return list
 
 
@@ -81,6 +86,7 @@ class ProfileSerializer(serializers.Serializer):
     profile_Image = serializers.ImageField(required=False, validators=[validate_image])
     parser_classes = [FormParser, MultiPartParser]
     name = serializers.CharField(required=False, max_length=25)
+    last_name = serializers.CharField(required=False, max_length=50)
 
     def validate_ZipCode(self, request):
         try:
@@ -106,10 +112,12 @@ class ProfileSerializer(serializers.Serializer):
         if self['birth_date'].value is not None:
             self.context['request'].user.profile.birth_date = self.validated_data['birth_date']
         if self['name'].value is not None:
-            self.context['request'].user.profile.name = self.validated_data['name']
+            self.context['request'].user.profile.name = capitalize_format(self.validated_data['name'])
+        if self['last_name'].value is not None:
+            self.context['request'].user.profile.last_name = capitalize_format(self.validated_data['last_name'])
         if self['zipcode'].value is not None:
             """ Update both state and city when ZipCode is updated"""
-            self.context['request'].user.profile.city = result['City']
+            self.context['request'].user.profile.city = capitalize_format(result['City'])
             self.context['request'].user.profile.state = result['State']
             self.context['request'].user.profile.zipcode = self.validated_data['zipcode']
         if self['profile_Image'].value is not None:
@@ -127,6 +135,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('email', 'password', 'zipcode', 'name', 'last_name', 'gender', 'birth_day', 'birth_month', 'birth_year')
         extra_kwargs = {'password': {'write_only': True}}
+
+    def absolute(request):
+        urls = {
+            'ABSOLUTE_ROOT': request.build_absolute_uri('/')[:-1].strip("/"),
+            'ABSOLUTE_ROOT_URL': request.build_absolute_uri('/').strip("/"),
+            }
+
+        return urls
 
     def create(self, validated_data):
         # load the profile instance created by the signal
@@ -152,24 +168,26 @@ class RegisterSerializer(serializers.ModelSerializer):
                     return None
         user = CustomUser.objects.create_user(
              validated_data['email'], validated_data['password'])
-        user.name = validated_data['name']
-        user.last_name = validated_data['last_name']
+        print("This is what is being saved:", capitalize_format(validated_data['name']))
+        user.name = capitalize_format(validated_data['name'])
+        user.last_name = capitalize_format(validated_data['last_name'])
         user.save()
+        print("Saved data", user.name, user.last_name)
         user.refresh_from_db()
+        print("Saved data after", user.name, user.last_name)
         user.profile.zipcode = validated_data['zipcode']
         user.profile.gender = validated_data['gender']
-        user.profile.name = validated_data['name']
-        user.profile.last_name = validated_data['last_name']
+        user.profile.name = capitalize_format(validated_data['name'])
+        user.profile.last_name = capitalize_format(validated_data['last_name'])
         user.profile.birth_day = validated_data['birth_day']
         user.profile.birth_month = validated_data['birth_month']
         user.profile.birth_year = validated_data['birth_year']
         user.profile.email = validated_data['email']
-        # Replace Nones with raise HTTP Responses in the future
         user.profile.state = result['State']
-        user.profile.city = result['City']
+        user.profile.city = capitalize_format(result['City'])
         user.profile.age = timezone.now().year - int(validated_data['birth_year'])
+        user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/?' + 'userid=' + user.userid
         user.profile.save()
-        print("User registering", user)
         return user
 
 
@@ -187,3 +205,15 @@ class LoginSerializer(serializers.Serializer):
             return user
         else:
             raise serializers.ValidationError("Incorrect Credentials")
+
+
+class GetProfileSerializer(serializers.Serializer):
+    def profile_Request(self, request):
+        url = request.GET.urlencode()
+        try:
+            query_dict = parse_qs(url)
+            profile = CustomUser.objects.get(userid=query_dict['userid'][0])
+            return profile.profile
+        except Exception:
+            """ No data in url"""
+            return None

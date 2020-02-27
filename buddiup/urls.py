@@ -25,7 +25,7 @@ router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('buddiconnect.urls')),
+    # path('', include('buddiconnect.urls')),
     path('', include('buddiaccounts.urls')),
     path('api/', include(router.urls)),
     path('accounts/', include('django.contrib.auth.urls')),
