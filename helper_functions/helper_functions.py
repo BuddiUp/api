@@ -34,11 +34,3 @@ def randomUsers(amount):
         list_profiles.append(profiles[random_number])
         amount -= 1
     return list_profiles
-
-
-def createGUID():
-    while True:
-        short_UUID = base64.urlsafe_b64encode(uuid.uuid1().bytes).rstrip(b'=').decode('ascii')
-        if CustomUser.objects.get(userid=short_UUID):
-            break
-pass
