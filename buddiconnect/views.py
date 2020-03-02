@@ -63,24 +63,20 @@ def signup(request):
     if request.method == 'POST':
         print("Request is post")
         form = SignUpForm(request.POST, request.FILES)
-        print(form.errors)
         if form.is_valid():
             """ If the form was created successfully"""
             print("Form was a success")
             user = form.save()
-            print("This is the form", user)
             user.refresh_from_db()  # load the profile instance created by the signal
-            user.profile.birth_date = form.cleaned_data.get('birth_date')
             user.profile.seeker = form.cleaned_data.get('seeker')
             user.profile.city = form.cleaned_data.get('city')
             user.profile.state = form.cleaned_data.get('state')
             user.profile.zipCode = form.cleaned_data.get('zipCode')
+
             user.profile.profile_Image = form.cleaned_data.get('profile_Image')
             print("This is what we are saving:", form.cleaned_data.get('profile_Image'))
+            user.profile.save()
             user.save()
-            raw_password = form.cleaned_data.get('password1')
-            user = authenticate(username=user.username, password=raw_password)
-            login(request, user)
             return redirect('homePage')
         else:
             print("Starting brand New")

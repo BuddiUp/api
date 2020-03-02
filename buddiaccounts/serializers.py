@@ -8,7 +8,11 @@ from django.utils import timezone
 from helper_functions.helper_functions import capitalize_format, randomUsers
 """  Imports start below this line """
 import requests
+from django.core.files.base import ContentFile
+from PIL import Image
 import os
+from io import BytesIO
+from django.core.files import File
 from urllib.parse import parse_qs, urlparse
 load_dotenv()  # This will enable to unload the keys secretly
 
@@ -17,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
     '''User Serializer'''
     class Meta:
         model = CustomUser
-        fields = ('email', 'last_name', 'name', 'userid',)
+        fields = ('email', 'last_name', 'name', 'userid')
 
 
 class ProfileDisplaySerializer(serializers.ModelSerializer):
@@ -175,13 +179,9 @@ class RegisterSerializer(serializers.ModelSerializer):
                     return None
         user = CustomUser.objects.create_user(
              validated_data['email'], validated_data['password'])
-        print("This is what is being saved:", capitalize_format(validated_data['name']))
         user.name = capitalize_format(validated_data['name'])
         user.last_name = capitalize_format(validated_data['last_name'])
-        user.save()
-        print("Saved data", user.name, user.last_name)
         user.refresh_from_db()
-        print("Saved data after", user.name, user.last_name)
         user.profile.zipcode = validated_data['zipcode']
         user.profile.gender = validated_data['gender']
         user.profile.name = capitalize_format(validated_data['name'])
@@ -193,7 +193,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.state = result['State']
         user.profile.city = capitalize_format(result['City'])
         user.profile.age = timezone.now().year - int(validated_data['birth_year'])
-        user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/?' + 'userid=' + user.userid
+        im = Image.open(r"api/default_Images/photos/default-image.png")
+        im.convert('RGB') # convert mode
+        # im.thumbnail((200, 200)) # resize image
+        thumb_io = BytesIO() # create a BytesIO object
+        im.save(thumb_io, 'PNG', quality=100) # save image to BytesIO object
+        thumbnail = File(thumb_io, name='default-image.png') # create a django friendly File object
+        user.profile.profile_Image = thumbnail
+        #  Inserting shutil
+        user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
         user.profile.save()
         return user
 
@@ -205,7 +213,9 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = EmailBackend.authenticate(self, **data)
+        print("This is the user", user)
         if user and user.is_active:
+            print("Authenticated")
             """  If authentication passed, user will be active, else Auth must have failed"""
             user.profile.age = timezone.now().year - int(user.profile.birth_year)
             user.profile.save()

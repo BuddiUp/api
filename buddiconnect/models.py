@@ -3,6 +3,7 @@ from buddiaccounts.models import CustomUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
+import pathlib
 import os
 from django.utils.html import mark_safe
 
@@ -11,14 +12,14 @@ from django.utils.html import mark_safe
 
 
 def get_image_path(instance, filename):
-    print("Triggered, this is the destination:", str(instance), filename)
-    return os.path.join('photos', str(instance), filename)
+    print("Triggered, this is the destination:", str(instance.id), filename)
+    return os.path.join('photos', str(instance.id), filename)
 
 
 class Profile(models.Model):
     """ This model Profile will be used to create A profile of the User"""
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True)
-    profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True, default='api/default_Images/photos/default-image.png')
+    profile_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)  #default=os.path.join('default_Images/photos/default-image.png'))
     name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     bio = models.TextField(max_length=500, blank=True)
@@ -34,12 +35,15 @@ class Profile(models.Model):
     seeker = models.BooleanField(default=True, blank=True)
     password = models.CharField(max_length=100, blank=True)
     profile_urlfield = models.URLField(max_length=200)
-    
+
     def __str__(self):
         return self.user.email
 
     def image_tag(self):
-        return mark_safe('<img src="/photos/%s" width="150" height="150" />' % (self.profile_Image))
+        try:
+            return mark_safe('<img src="/photos/%s" width="150" height="150" />' % (self.profile_Image))
+        except Exception:
+            pass
 
 
 @receiver(post_save, sender=CustomUser)

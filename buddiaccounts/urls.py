@@ -6,7 +6,7 @@ from . import views
 
 urlpatterns = [
     path('api/auth', include('knox.urls')),
-    path('', ProfileRequestAPI.as_view()),
+    path('user/', ProfileRequestAPI.as_view()),
     path('api/auth/register', RegisterAPI.as_view()),
     path('api/auth/login', LoginAPI.as_view()),
     path('api/auth/user', UserAPI.as_view()),

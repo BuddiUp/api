@@ -18,17 +18,21 @@ from django.urls import include, path
 
 from rest_framework import routers
 from api import views
-
+from django.conf import settings
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.contrib.staticfiles.urls import static
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 # router.register(r'groups', views.GroupViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', include('buddiconnect.urls')),
+    path('home/', include('buddiconnect.urls')),
     path('', include('buddiaccounts.urls')),
     path('api/', include(router.urls)),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('react-auth/', include('buddiaccounts.urls'))
 ]
+urlpatterns += staticfiles_urlpatterns()
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

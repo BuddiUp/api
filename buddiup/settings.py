@@ -136,9 +136,6 @@ AUTHENTICATION_BACKENDS = (
 )
 
 
-STATIC_URL = '/static/'
-MEDIA_ROOT = 'api/photos'  # Make sure root is set before the saving on board
-MEDIA_URL = '/photos/'
 REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': (
     #     'rest_framework.permissions.IsAuthenticated',
@@ -151,9 +148,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
-FILE_UPLOAD_HANDLERS = [
-    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
-]
 
 CORS_ORIGIN_ALLOW_ALL = True
 # email backend for debug (prints to console)
@@ -167,6 +161,8 @@ EMAIL_PORT = 587
 # Add this key and the one below it to the .env file
 EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')
 EMAIL_HOST_PASSWORD = os.getenv('GMAIL_KEY')
-
+STATIC_URL = '/static/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'api/photos')
+MEDIA_URL = '/photos/'
 #  Helped with creating table for custom user
 # https://stackoverflow.com/questions/25771755/django-operationalerror-no-such-table/37799885

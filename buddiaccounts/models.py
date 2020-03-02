@@ -13,6 +13,7 @@ class EmailBackend(object):
     def authenticate(self, email="", password=""):
         try:
             user = CustomUser.objects.get(email=email)
+            print("This is the password checking", password, user.password)
             if check_password(password, user.password):
                 return user
             else:
