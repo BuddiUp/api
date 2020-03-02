@@ -181,6 +181,7 @@ class RegisterSerializer(serializers.ModelSerializer):
              validated_data['email'], validated_data['password'])
         user.name = capitalize_format(validated_data['name'])
         user.last_name = capitalize_format(validated_data['last_name'])
+        user.save()
         user.refresh_from_db()
         user.profile.zipcode = validated_data['zipcode']
         user.profile.gender = validated_data['gender']
