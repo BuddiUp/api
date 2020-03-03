@@ -10,6 +10,7 @@ from helper_functions.helper_functions import capitalize_format, randomUsers
 import requests
 from django.core.files.base import ContentFile
 from PIL import Image
+import PIL
 import os
 from io import BytesIO
 from django.core.files import File
@@ -194,12 +195,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.state = result['State']
         user.profile.city = capitalize_format(result['City'])
         user.profile.age = timezone.now().year - int(validated_data['birth_year'])
-        im = Image.open(r"api/default_Images/photos/default-image.png")
-        im.convert('RGB') # convert mode
-        # im.thumbnail((200, 200)) # resize image
-        thumb_io = BytesIO() # create a BytesIO object
-        im.save(thumb_io, 'PNG', quality=100) # save image to BytesIO object
+        im = Image.open(r"api/default_Images/photos/default-image.png", mode='r')
+        # im.convert('RGB') # convert mode
+        # im.thumbnail((600, 600)) # resize image
+        sizeb = os.path.getsize('api/default_Images/photos/default-image.png')
+        print("Size in bytes", sizeb)
+        thumb_io = BytesIO(sizeb.to_bytes(10, 'big')) # create a BytesIO object
+        im = im.resize((400, 400), PIL.Image.ANTIALIAS)
+        im.save(thumb_io, 'PNG', quality=90) # save image to BytesIO object
         thumbnail = File(thumb_io, name='default-image.png') # create a django friendly File object
+        # ContentFile
         user.profile.profile_Image = thumbnail
         #  Inserting shutil
         user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
