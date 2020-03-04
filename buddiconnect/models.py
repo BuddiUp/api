@@ -35,6 +35,7 @@ class Profile(models.Model):
     seeker = models.BooleanField(default=True, blank=True)
     password = models.CharField(max_length=100, blank=True)
     profile_urlfield = models.URLField(max_length=200)
+    user_uuid = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return self.user.email

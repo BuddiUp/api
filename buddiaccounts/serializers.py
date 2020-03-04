@@ -208,6 +208,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.profile_Image = thumbnail
         #  Inserting shutil
         user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
+        user.profile.user_uuid = user.userid
         user.profile.save()
         return user
 
