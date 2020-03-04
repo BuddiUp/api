@@ -213,9 +213,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.profile_Image = thumbnail
         user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
         user.profile.user_uuid = user.userid
-
         user.profile.save()
-        return user
+        user_profile = Profile.objects.get(user_uuid=user.userid)
+        print("We have the profile", user_profile)
+        return user_profile
 
 
 class LoginSerializer(serializers.Serializer):

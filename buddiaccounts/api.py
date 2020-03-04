@@ -12,6 +12,7 @@ from django.core.mail import EmailMessage
 
 from .permissions_file import TokenPermission, account_activation_token
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import CustomUser
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer, GetProfileSerializer
 import json
 '''
@@ -69,6 +70,7 @@ class RegisterAPI(generics.GenericAPIView):
         # print(serializer.save()) #Uncomment this to debug
         try:
             user = serializer.save()
+            user_acc = CustomUser.objects.get(id=user.id)
         except Exception:
             context = {
                 'status': '400', 'message': 'ZipCode was invalid or email already exists'
@@ -81,19 +83,18 @@ class RegisterAPI(generics.GenericAPIView):
         current_site = get_current_site(request)
         email_subject = 'Activate Your Account'
         message = render_to_string('signupPage/activate_account.html', {
-            'user': user,
+            'user': user_acc,
             'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-            'token': account_activation_token.make_token(user),
+            'uid': urlsafe_base64_encode(force_bytes(user_acc.pk)),
+            'token': account_activation_token.make_token(user_acc),
         })
         to_email = serializer.validated_data.get('email')
         email = EmailMessage(email_subject, message, to=[to_email])
         email.send()
-
         return Response({
             # Sends a serialized user as a response
-            "user": UserSerializer(user, context=self.get_serializer_context()).data,
-            "token": AuthToken.objects.create(user)[1]
+            "user": ProfileDisplaySerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user_acc)[1]
         })
 
 
