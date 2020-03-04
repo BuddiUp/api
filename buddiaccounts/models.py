@@ -13,7 +13,6 @@ class EmailBackend(object):
     def authenticate(self, email="", password=""):
         try:
             user = CustomUser.objects.get(email=email)
-            print("This is the password checking", password, user.password)
             if check_password(password, user.password):
                 return user
             else:
@@ -34,7 +33,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    userid = models.CharField(max_length=100, blank=True, unique=True, null=True, default=base64.urlsafe_b64encode(uuid.uuid1().bytes).rstrip(b'=').decode('ascii'))
+    userid = models.CharField(max_length=100, blank=True, null=True) #, unique=True, null=True, default=base64.urlsafe_b64encode(uuid.uuid1().bytes).rstrip(b'=').decode('ascii'))
     date_joined = models.DateTimeField(default=timezone.now)
     name = models.CharField(max_length=25, blank=True)
     last_name = models.CharField(max_length=100, blank=True)

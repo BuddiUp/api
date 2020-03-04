@@ -70,8 +70,6 @@ class RegisterAPI(generics.GenericAPIView):
         try:
             user = serializer.save()
         except Exception:
-            """ Check if the zipCode caused the problem"""
-            """ Third Party API Must have failed"""
             context = {
                 'status': '400', 'message': 'ZipCode was invalid or email already exists'
             }

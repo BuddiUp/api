@@ -15,6 +15,8 @@ import os
 from io import BytesIO
 from django.core.files import File
 from urllib.parse import parse_qs, urlparse
+import uuid
+import base64
 load_dotenv()  # This will enable to unload the keys secretly
 
 
@@ -182,6 +184,12 @@ class RegisterSerializer(serializers.ModelSerializer):
              validated_data['email'], validated_data['password'])
         user.name = capitalize_format(validated_data['name'])
         user.last_name = capitalize_format(validated_data['last_name'])
+        while True:
+            randomuuid = base64.urlsafe_b64encode(uuid.uuid1().bytes).rstrip(b'=').decode('ascii')
+            if CustomUser.objects.filter(userid=randomuuid).exists():
+                continue
+            user.userid = randomuuid
+            break
         user.save()
         user.refresh_from_db()
         user.profile.zipcode = validated_data['zipcode']
@@ -196,19 +204,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.city = capitalize_format(result['City'])
         user.profile.age = timezone.now().year - int(validated_data['birth_year'])
         im = Image.open(r"api/default_Images/photos/default-image.png", mode='r')
-        # im.convert('RGB') # convert mode
-        # im.thumbnail((600, 600)) # resize image
         sizeb = os.path.getsize('api/default_Images/photos/default-image.png')
         print("Size in bytes", sizeb)
         thumb_io = BytesIO(sizeb.to_bytes(10, 'big')) # create a BytesIO object
         im = im.resize((400, 400), PIL.Image.ANTIALIAS)
         im.save(thumb_io, 'PNG', quality=90) # save image to BytesIO object
         thumbnail = File(thumb_io, name='default-image.png') # create a django friendly File object
-        # ContentFile
         user.profile.profile_Image = thumbnail
-        #  Inserting shutil
         user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
         user.profile.user_uuid = user.userid
+
         user.profile.save()
         return user
 
