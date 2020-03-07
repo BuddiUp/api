@@ -5,7 +5,7 @@ from .models import EmailBackend, CustomUser
 from rest_framework.parsers import MultiPartParser, FormParser
 from dotenv import load_dotenv
 from django.utils import timezone
-from helper_functions.helper_functions import capitalize_format, randomUsers
+from helper_functions.helper_functions import capitalize_format, randomUsers, userAge
 """  Imports start below this line """
 import requests
 from django.core.files.base import ContentFile
@@ -131,9 +131,6 @@ class ProfileSerializer(serializers.Serializer):
             self.context['request'].user.profile.city = capitalize_format(result['City'])
             self.context['request'].user.profile.state = result['State']
             self.context['request'].user.profile.zipcode = self.validated_data['zipcode']
-        if self['profile_Image'].value is not None:
-            self.context['request'].user.profile.profile_Image = validate_image(
-                self.validated_data['profile_Image'])
         if request.data.get('profile_Image', False):
             self.context['request'].user.profile.profile_Image = request.data['profile_Image']
         if self['seeker'].value is not None:
@@ -202,15 +199,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.profile.email = validated_data['email']
         user.profile.state = result['State']
         user.profile.city = capitalize_format(result['City'])
-        user.profile.age = timezone.now().year - int(validated_data['birth_year'])
-        im = Image.open(r"api/default_Images/photos/default-image.png", mode='r')
-        sizeb = os.path.getsize('api/default_Images/photos/default-image.png')
-        print("Size in bytes", sizeb)
-        thumb_io = BytesIO(sizeb.to_bytes(10, 'big')) # create a BytesIO object
-        im = im.resize((400, 400), PIL.Image.ANTIALIAS)
-        im.save(thumb_io, 'PNG', quality=90) # save image to BytesIO object
-        thumbnail = File(thumb_io, name='default-image.png') # create a django friendly File object
-        user.profile.profile_Image = thumbnail
+        localAge = userAge(validated_data['birth_month'], validated_data['birth_day'], validated_data['birth_year'])
+        user.profile.age = localAge
         user.profile.profile_urlfield = self.context['request'].build_absolute_uri('/')[:-1].strip("/") + '/user/?' + 'userid=' + user.userid
         user.profile.user_uuid = user.userid
         user.profile.save()
@@ -230,7 +220,7 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             print("Authenticated")
             """  If authentication passed, user will be active, else Auth must have failed"""
-            user.profile.age = timezone.now().year - int(user.profile.birth_year)
+            user.profile.age = userAge(user.profile.birth_month, user.profile.birth_day, user.profile.birth_year)
             user.profile.save()
             return user
         else:
@@ -247,3 +237,15 @@ class GetProfileSerializer(serializers.Serializer):
         except Exception:
             """ No data in url"""
             return None
+
+
+""""  PROFILE SERIALIZER WILL BE DISCUSSED 33/12"""
+# class GetProfileImageSerializer(serializers.Serializer):
+#     user_uuid = serializers.CharField(required=True, max_length=100)
+#
+#     def profile_ImageRequest(self, request):
+#         try:
+#             profile_image = Profile.objects.get(user_uuid=self['user_uuid']).profile_Image
+#             return profile_image
+#         except Exception:
+#             return None

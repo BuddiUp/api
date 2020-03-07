@@ -15,45 +15,14 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .models import CustomUser
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer, GetProfileSerializer
 import json
-'''
-####### Using PostMan to test #######
-BODY REFERENCE:
-    !!!!!!!! READ !!!!!!!!
-    - If you're doing RegisterAPI you can copy the whole thing below
-    - If you're doing LoginAPI REMOVE the email from the body
-    {
-        "username": "test",
-        "email": "test@gmail.com",
-        "password": "12345"
-    }
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-RegisterAPI:
-    - Open a new tab
-    - Set to POST request with the URL: http://127.0.0.1:8000/api/auth/register
-    - Inside HEADERS:
-        - KEY: Content-Type
-        - VALUE: application/json
-    - Go to BODY, hit RAW and add (refer to BODY REFERENCE)
-    - Hit send
-LoginAPI:
-    - Open a new tab
-    - Set to POST request with the URL: http://127.0.0.1:8000/api/auth/login
-    - Inside HEADERS:
-        - KEY: Content-Type
-        - VALUE: application/json
-    - Go to BODY, hit RAW and add (refer to BODY REFERENCE)
-    - Hit send
-UserAPI:
-    - Open a new tab
-    - Set to GET request with the URL: http://127.0.0.1:8000/api/auth/user
-    - Inside HEADERS:
-        - KEY: Authorization
-        - VALUE: Token (get token from LoginAPI)
-    - Hit send
-'''
-'''  ADDED ZIPCODE VALIDATION WITH INCREASE SPEED, WILL OPTIMIZE SOON
-    2/22/2020
-'''
+"""
+####### Using PostMan to test #######
+
+
+"""
 
 
 class RegisterAPI(generics.GenericAPIView):
@@ -94,6 +63,8 @@ class RegisterAPI(generics.GenericAPIView):
         return Response({
             # Sends a serialized user as a response
             "user": ProfileDisplaySerializer(user, context=self.get_serializer_context()).data,
+            "default_image": request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
+            # "default"
             "token": AuthToken.objects.create(user_acc)[1]
         })
 
@@ -133,6 +104,7 @@ class SearchUserAPI(generics.GenericAPIView):
         return Response({
             # Sends a serialized user as a response
             "userProfiles": new_list,
+            "default_image": request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
         })
 
 
@@ -166,6 +138,7 @@ class ProfileAPI(generics.GenericAPIView):
         return Response({
             # Sends a serialized user as a response
             "user": ProfileDisplaySerializer(request.user.profile, context=self.get_serializer_context()).data,
+            "default_image": request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
         })
 
 
@@ -184,6 +157,7 @@ class LoginAPI(generics.GenericAPIView):
         return Response({
             # Sends a serialized user as a response
             "user": ProfileDisplaySerializer(user.profile, context=self.get_serializer_context()).data,
+            "default_image": request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
             "token": AuthToken.objects.create(user)[1]
         })
 
@@ -202,6 +176,21 @@ class UserAPI(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user.profile
+
+
+""" Profile Image API will be discussed"""
+# class ProfileImageAPI(generics.RetrieveAPIView):
+#     serializer_class = GetProfileImageSerializer
+#
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+#         profile_image = serializer.profile_ImageRequest(request)
+#         print("ProfileImageAPI says hi")
+#         try:
+#             with open(profile_image, "rb") as f:
+#                 return HttpResponse(f.read(), content_type="image/jpeg")
+#         except Exception:
+#             pass
 
 
 class ProfileRequestAPI(generics.RetrieveAPIView):
@@ -235,4 +224,5 @@ class ProfileRequestAPI(generics.RetrieveAPIView):
             return Response({
                 # Sends a serialized user as a response
                 "user": ProfileDisplaySerializer(profile, context=self.get_serializer_context()).data,
+                "default_image": request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
             })

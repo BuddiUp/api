@@ -3,6 +3,9 @@ from buddiaccounts.models import CustomUser
 import random
 import uuid
 import base64
+from django.utils import timezone
+
+""" Optimize these functions when bare bone of the project are functional  """
 
 
 def capitalize_format(string):
@@ -34,3 +37,23 @@ def randomUsers(amount):
         list_profiles.append(profiles[random_number])
         amount -= 1
     return list_profiles
+
+
+def userAge(month, day, year):
+    month = int(month)
+    day = int(day)
+    year = int(year)
+    if month >= timezone.now().month:
+        if month == timezone.now().month:
+            if day > timezone.now().day:
+                age = (timezone.now().year - int(year)) - 1
+                return age
+            else:
+                age = (timezone.now().year - int(year))
+                return age
+        else:
+            age = (timezone.now().year - int(year)) - 1
+            return age
+    else:
+        age = (timezone.now().year - int(year))
+        return age

@@ -6,6 +6,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 import pathlib
 import os
 from django.utils.html import mark_safe
+from PIL import Image
+import PIL
+from io import BytesIO
+from django.core.files import File
 
 #https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html
 # Link to Articled that explained the process in the Models
@@ -14,6 +18,17 @@ from django.utils.html import mark_safe
 def get_image_path(instance, filename):
     print("Triggered, this is the destination:", str(instance.id), filename)
     return os.path.join('photos', str(instance.id), filename)
+
+
+def default_image_path():
+    im = Image.open(r"static/default_Images/photos/default-image.png", mode='r')
+    sizeb = os.path.getsize('static/default_Images/photos/default-image.png')
+    print("Size in bytes", sizeb)
+    thumb_io = BytesIO(sizeb.to_bytes(10, 'big')) # create a BytesIO object
+    im = im.resize((400, 400), PIL.Image.ANTIALIAS)
+    im.save(thumb_io, 'PNG', quality=90) # save image to BytesIO object
+    thumbnail = File(thumb_io, name='default-image.png') # create a django friendly File object
+    return thumbnail
 
 
 class Profile(models.Model):

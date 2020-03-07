@@ -162,7 +162,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv('GMAIL_ADDR')
 EMAIL_HOST_PASSWORD = os.getenv('GMAIL_KEY')
 STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'api/photos')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/user')
 MEDIA_URL = '/photos/'
 #  Helped with creating table for custom user
 # https://stackoverflow.com/questions/25771755/django-operationalerror-no-such-table/37799885
