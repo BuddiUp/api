@@ -11,9 +11,6 @@ import PIL
 from io import BytesIO
 from django.core.files import File
 
-#https://simpleisbetterthancomplex.com/tutorial/2017/02/18/how-to-create-user-sign-up-view.html
-# Link to Articled that explained the process in the Models
-
 
 def get_image_path(instance, filename):
     print("Triggered, this is the destination:", str(instance.id), filename)
@@ -47,7 +44,7 @@ class Profile(models.Model):
     birth_day = models.CharField(max_length=2,  blank=True)
     birth_year = models.CharField(max_length=4, blank=True)
     age = models.CharField(max_length=3, blank=True)
-    seeker = models.BooleanField(default=True, blank=True)
+    seeker = models.BooleanField(default=False, blank=True)
     password = models.CharField(max_length=100, blank=True)
     profile_urlfield = models.URLField(max_length=200)
     user_uuid = models.CharField(max_length=100, blank=True)
@@ -67,3 +64,30 @@ def update_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
     instance.profile.save()
+
+
+@receiver(models.signals.pre_save, sender=Profile)
+def auto_delete_file_on_change(sender, instance, **kwargs):
+    # https://stackoverflow.com/questions/16041232/django-delete-filefield #Credit
+    """
+    Deletes old file from filesystem
+    when corresponding `MediaFile` object is updated
+    with new file.
+    This function needs to be optimized, marked 3/8/2020
+    """
+    if not instance.pk:
+        return False
+    try:
+        old_file = Profile.objects.get(pk=instance.pk).profile_Image
+    except Profile.DoesNotExist:
+        return False
+    try:
+        new_file = instance.profile_Image
+    except Exception:
+        return False
+    try:
+        if not old_file == new_file:
+            if os.path.isfile(old_file.path):
+                os.remove(old_file.path)
+    except Exception:
+        return False

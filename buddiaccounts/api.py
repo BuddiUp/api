@@ -13,7 +13,7 @@ from django.core.mail import EmailMessage
 from .permissions_file import TokenPermission, account_activation_token
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import CustomUser
-from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer, GetProfileSerializer
+from .serializers import UserSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer, UserSearchSerializer, ProfileDisplaySerializer, GetProfileSerializer, AuthenticateUserEmail
 import json
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,13 +48,13 @@ class RegisterAPI(generics.GenericAPIView):
                 context), content_type='application/json')
             response.status_code = 400
             return response
-         # Send confirmation email
+        # Send confirmation email
         current_site = get_current_site(request)
         email_subject = 'Activate Your Account'
         message = render_to_string('signupPage/activate_account.html', {
             'user': user_acc,
             'domain': current_site.domain,
-            'uid': urlsafe_base64_encode(force_bytes(user_acc.pk)),
+            'uid': user_acc.userid,
             'token': account_activation_token.make_token(user_acc),
         })
         to_email = serializer.validated_data.get('email')
@@ -178,19 +178,26 @@ class UserAPI(generics.RetrieveAPIView):
         return self.request.user.profile
 
 
-""" Profile Image API will be discussed"""
-# class ProfileImageAPI(generics.RetrieveAPIView):
-#     serializer_class = GetProfileImageSerializer
-#
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         profile_image = serializer.profile_ImageRequest(request)
-#         print("ProfileImageAPI says hi")
-#         try:
-#             with open(profile_image, "rb") as f:
-#                 return HttpResponse(f.read(), content_type="image/jpeg")
-#         except Exception:
-#             pass
+class AuthenticateUserEmailAPI(generics.RetrieveAPIView):
+    serializer_class = AuthenticateUserEmail
+
+    def get(self, request, *args, **kwargs):
+        token = kwargs['token']
+        uidb64 = kwargs['uidb64']
+        profile = self.serializer_class.authenticate_User(self, token, uidb64)
+        if profile is None:
+            context = {
+                'status': '404', 'No Porfile found': 'Redirect to HomePage'
+            }
+            response = HttpResponse(json.dumps(context), content_type='application/json')
+            response.status_code = 400
+            return response
+        else:
+            return Response({
+                # Sends a serialized user as a response
+
+                "status": 200
+            })
 
 
 class ProfileRequestAPI(generics.RetrieveAPIView):
@@ -200,13 +207,7 @@ class ProfileRequestAPI(generics.RetrieveAPIView):
         - The user that is associated with the request via the token
         This will only display the user's Email
     '''
-    # permission_classes = [
-    #     permissions.IsAuthenticated,
-    # ]
-    #
-    # def get(self, request, *args, **kwargs):
-    #     print("Got request")
-    #     serializer_class.profile_Request(request)
+
     serializer_class = GetProfileSerializer
 
     def get(self, request):

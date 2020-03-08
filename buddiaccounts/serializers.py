@@ -17,6 +17,12 @@ from django.core.files import File
 from urllib.parse import parse_qs, urlparse
 import uuid
 import base64
+from datetime import timedelta
+from django.utils import timezone
+from django.conf import settings
+from .permissions_file import account_activation_token
+from tokenize import tokenize
+
 load_dotenv()  # This will enable to unload the keys secretly
 
 
@@ -77,7 +83,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
                 """ There is data in the result"""
                 pass
         for zip in result['DataList']:
-            profile_list = Profile.objects.filter(zipcode=int(zip['Code'])).exclude(id=user_profileID, seeker=False)
+            profile_list = Profile.objects.filter(zipcode=int(zip['Code']), seeker=True).exclude(id=user_profileID, seeker=False)
             for item in profile_list:
                 list.append(item)
         # if len(list) == 0:
@@ -239,13 +245,16 @@ class GetProfileSerializer(serializers.Serializer):
             return None
 
 
-""""  PROFILE SERIALIZER WILL BE DISCUSSED 33/12"""
-# class GetProfileImageSerializer(serializers.Serializer):
-#     user_uuid = serializers.CharField(required=True, max_length=100)
-#
-#     def profile_ImageRequest(self, request):
-#         try:
-#             profile_image = Profile.objects.get(user_uuid=self['user_uuid']).profile_Image
-#             return profile_image
-#         except Exception:
-#             return None
+class AuthenticateUserEmail(serializers.Serializer):
+
+    def authenticate_User(self, token,  uidb64):
+        try:
+            user = CustomUser.objects.get(userid=uidb64)
+            if account_activation_token.check_token(user, token) is True:
+                user.profile.seeker = True
+                user.profile.save()
+                return True
+        except Exception:
+            """ token expired"""
+            print("Token is invalid")
+            return None

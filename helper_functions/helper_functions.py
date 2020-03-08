@@ -1,8 +1,5 @@
 from buddiconnect.models import Profile
-from buddiaccounts.models import CustomUser
 import random
-import uuid
-import base64
 from django.utils import timezone
 
 """ Optimize these functions when bare bone of the project are functional  """
@@ -12,8 +9,6 @@ def capitalize_format(string):
     """ Capitalize first letter of every word """
     words = string.split()
     result = ""
-    # for word in words:
-    #     result += word.capitalize()
     for index in range(len(words)):
         if (index + 1 >= len(words)) is False:
             result += words[index].capitalize() + " "
@@ -27,15 +22,19 @@ def randomUsers(amount):
     profiles = Profile.objects.all().filter(seeker=True)
     list_profiles = []
     cap = len(Profile.objects.all().filter(seeker=True))
-    while amount > 0:
-        random_number = random.randint(0, len(profiles)-1)
-        if profiles[random_number] in list_profiles:
-            if len(list_profiles) == cap:
-                break
-            else:
-                continue
-        list_profiles.append(profiles[random_number])
-        amount -= 1
+    try:
+        while amount > 0:
+            random_number = random.randint(0, len(profiles)-1)
+            if profiles[random_number] in list_profiles:
+                if len(list_profiles) == cap:
+                    break
+                else:
+                    continue
+            list_profiles.append(profiles[random_number])
+            amount -= 1
+    except Exception:
+        """ NO USERS WITHIN THE DEFAULT RADIUS"""
+        return list_profiles
     return list_profiles
 
 
