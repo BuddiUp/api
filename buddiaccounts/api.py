@@ -173,9 +173,15 @@ class UserAPI(generics.RetrieveAPIView):
         permissions.IsAuthenticated,
     ]
     serializer_class = ProfileDisplaySerializer
+    def get(self, *args, **kwargs):
+        return Response({
+            # Sends a serialized user as a response
+            "user": ProfileDisplaySerializer(self.request.user.profile, context=self.get_serializer_context()).data,
+            "default_image": self.request.build_absolute_uri('/')[:-1].strip("/") + '/photos/default_Images/photos/default-image.png',
+        })
+        
 
-    def get_object(self):
-        return self.request.user.profile
+
 
 
 class AuthenticateUserEmailAPI(generics.RetrieveAPIView):

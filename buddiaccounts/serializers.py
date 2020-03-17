@@ -51,7 +51,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
         """ Find a faster query solution self note"""
         list = []
         max_radius = 0
-        if bool(request.data.get('random_users')) is True:
+        if request.data.get('random_users').lower() == 'true':
             random_amount = 25  # This is the user amount we want to retrieve
             return randomUsers(random_amount)
         try:
